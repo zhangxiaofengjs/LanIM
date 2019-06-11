@@ -1,4 +1,4 @@
-﻿using Com.LanIM.Network.Packet;
+﻿using Com.LanIM.Network.Packets;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,10 +7,10 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Com.LanIM.Network.PacketResolver
+namespace Com.LanIM.Network.PacketsResolver
 {
     //兼容IPMsg 3.42的包格式的解析类
-    public class IPMsgUdpPacketResolver : IUdpPacketResolver
+    public class IPMsgUdpPacketResolver : IPacketResolver
     {
         private byte[] _datagram;
         public IPMsgUdpPacketResolver(byte[] datagram)
@@ -18,7 +18,7 @@ namespace Com.LanIM.Network.PacketResolver
             this._datagram = datagram;
         }
 
-        public UdpPacket Resolve()
+        public Packet Resolve()
         {
             IPMsgUdpPacket packet = new IPMsgUdpPacket();
             //更改在线状态消息示例：1:1559263918:hyron-<06f73d2bf8f254bd>:DESKTOP-904FV8J:258212096:202?��?[�H����]\0202g\0\nUN:hyron-<06f73d2bf8f254bd>\nHN:DESKTOP-904FV8J\nNN:202张小锋[食事中]\nGN:202g\nVS:00010002:4:99:106"

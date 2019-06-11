@@ -1,4 +1,4 @@
-﻿using Com.LanIM.Network.Packet;
+﻿using Com.LanIM.Network.Packets;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -45,6 +45,40 @@ namespace Com.LanIM.Network
         public UdpClientReceiveEventArgs(UdpPacket packet)
         : base (packet)
         {
+        }
+    }
+
+    public class FileTransportEventArgs
+    {
+        private TransportFile _file = null;
+        public TransportFile File
+        {
+            get { return _file; }
+        }
+
+        public FileTransportEventArgs(TransportFile file)
+        {
+            _file = file;
+        }
+    }
+
+    public class FileTransportErrorEventArgs: FileTransportEventArgs
+    {
+        public enum ErrorReason
+        {
+            None,
+            FileOpenError,
+            FileWriteError,
+            NetworkError,
+        }
+        private ErrorReason _reason = ErrorReason.None;
+
+        public ErrorReason Reason { get => _reason; }
+
+        public FileTransportErrorEventArgs(TransportFile file, ErrorReason reason)
+            :base(file)
+        {
+            _reason = reason;
         }
     }
 }

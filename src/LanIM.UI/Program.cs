@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Com.LanIM.Common.Logger;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -17,7 +18,9 @@ namespace Com.LanIM.UI
 		{
 			Application.EnableVisualStyles();
 			Application.SetCompatibleTextRenderingDefault(false);
-			Application.Run(new FormIPMsgTest());
+
+            LoggerFactory.Initialize();
+            Application.Run(new FormIPMsgTest());
 		}
 	}
 }

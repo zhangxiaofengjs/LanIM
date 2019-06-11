@@ -6,7 +6,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Com.LanIM.Network.Packet
+namespace Com.LanIM.Network.Packets
 {
     //上线附加信息包
     public class UdpPacketEntryExtend

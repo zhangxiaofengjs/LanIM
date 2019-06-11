@@ -6,7 +6,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Com.LanIM.Network.Packet
+namespace Com.LanIM.Network.Packets
 {
     //兼容IPMsg 3.42的包格式
     //版本：包编号：发送者名字：发送主机：命令编号：附加信息区域

@@ -11,13 +11,17 @@ namespace Com.LanIM.Common.Logger
     {
         private static SimpleTextLogger _simpleTextLoggerInstance;
 
-        public static ILogger Instance()
+        public static void Initialize()
         {
-            if(_simpleTextLoggerInstance == null)
+            if (_simpleTextLoggerInstance == null)
             {
                 _simpleTextLoggerInstance = new SimpleTextLogger();
                 _simpleTextLoggerInstance.Initialize();
             }
+        }
+
+        public static ILogger Instance()
+        {
             return _simpleTextLoggerInstance;
         }
     }

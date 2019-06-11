@@ -1,4 +1,6 @@
-﻿using Com.LanIM.Network.Packet;
+﻿using Com.LanIM.Network;
+using Com.LanIM.Network.Packets;
+using LanIM.Common;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -9,7 +11,21 @@ using System.Threading.Tasks;
 
 namespace Com.LanIM.UI
 {
-    class LanIMEventArgs
+    class LanIMUserEventArgs
+    {
+        private LanUser _user;
+        public LanUser User
+        {
+            get { return _user; }
+        }
+
+        public LanIMUserEventArgs(LanUser user)
+        {
+            _user = user;
+        }
+    }
+
+    class LanIMPacketEventArgs
     {
         private UdpPacket _packet;
         public UdpPacket Packet
@@ -17,13 +33,13 @@ namespace Com.LanIM.UI
             get { return _packet; }
         }
 
-        public LanIMEventArgs(UdpPacket packet)
+        public LanIMPacketEventArgs(UdpPacket packet)
         {
             _packet = packet;
         }
     }
 
-    class SendEventArgs  : LanIMEventArgs
+    class SendEventArgs  : LanIMPacketEventArgs
     {
         private bool _success = false;
         public bool Success
@@ -41,36 +57,17 @@ namespace Com.LanIM.UI
         }
     }
 
-    class ReceiveEventArgs: LanIMEventArgs
+    class UserStateChangeEventArgs : LanIMUserEventArgs
     {
-        public ReceiveEventArgs(UdpPacket packet)
-        : base (packet)
-        {
-        }
-    }
-
-    class UserStateChangeEventArgs
-    {
-        private LanUser _user;
-        public LanUser User
-        {
-            get { return _user; }
-        }
-
         public UserStateChangeEventArgs(LanUser user)
+            :base(user)
         {
-            _user = user;
         }
     }
 
-    class TextMessageReceivedEventArgs
+    class TextMessageReceivedEventArgs : LanIMUserEventArgs
     {
-        private LanUser _user;
         private String _meassage;
-        public LanUser User
-        {
-            get { return _user; }
-        }
 
         public string Message
         {
@@ -78,21 +75,16 @@ namespace Com.LanIM.UI
         }
 
         public TextMessageReceivedEventArgs(LanUser user, string msg)
+            :base(user)
         {
-            _user = user;
             _meassage = msg;
             
         }
     }
 
-    class ImageReceivedEventArgs
+    class ImageReceivedEventArgs : LanIMUserEventArgs
     {
-        private LanUser _user;
         private Image _image;
-        public LanUser User
-        {
-            get { return _user; }
-        }
 
         public Image Image
         {
@@ -100,9 +92,31 @@ namespace Com.LanIM.UI
         }
 
         public ImageReceivedEventArgs(LanUser user, Image image)
+            : base(user)
         {
-            _user = user;
             _image = image;
+        }
+    }
+
+    class FileTransportRequestedEventArgs : LanIMUserEventArgs
+    {
+        private TransportFile _file;
+
+        public TransportFile File
+        {
+            get { return _file; }
+        }
+
+        public FileTransportRequestedEventArgs(LanUser user, TransportFile file)
+            : base(user)
+        {
+            this._file = file;
+        }
+
+        public override string ToString()
+        {
+            return string.Format("{{user={0}, file={1}}}",
+                this.User, this.File);
         }
     }
 }

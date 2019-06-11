@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LanIM.Common;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -6,23 +7,23 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Com.LanIM.Network.Packet
+namespace Com.LanIM.Network.Packets
 {
-    //文本消息附加信息包
-    public class UdpPacketTextExtend
+    //文件消息附加信息包
+    public class UdpPacketSendFileRequestExtend
     {
         public byte[] EncryptKey { get; set; }
-        public string Text { get; set; }
+        public LanFile File { get; set; }
 
-        public UdpPacketTextExtend()
-        {
+        public UdpPacketSendFileRequestExtend()
+        { 
         }
 
         public override string ToString()
         {
-            string str = string.Format("{{encrypt={0}, message={1}}}",
+            string str = string.Format("{{encrypt={0}, file={1}}}",
                     (EncryptKey != null && EncryptKey.Length != 0 ? "Yes" : "No"),
-                    Text);
+                    File);
             return str;
         }
     }

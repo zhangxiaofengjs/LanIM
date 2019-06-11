@@ -1,4 +1,4 @@
-﻿using Com.LanIM.Network.Packet;
+﻿using Com.LanIM.Network.Packets;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,10 +7,10 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Com.LanIM.Network.PacketResolver
+namespace Com.LanIM.Network.PacketsEncoder
 {
-    public interface IUdpPacketResolver
+    public interface IPacketEncoder
     {
-        UdpPacket Resolve();
+        byte[] Encode();
     }
 }

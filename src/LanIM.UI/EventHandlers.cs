@@ -10,6 +10,5 @@ namespace Com.LanIM.UI
     delegate void UserStateEventHandler(object sender, UserStateChangeEventArgs args);
     delegate void TextMessageReceivedHandler(object sender, TextMessageReceivedEventArgs args);
     delegate void ImageReceivedHandler(object sender, ImageReceivedEventArgs args);
-
-    delegate void ReceiveEventHandler(object sender, ReceiveEventArgs args);
+    delegate void FileTransportRequestedHandler(object sender, FileTransportRequestedEventArgs args);
 }

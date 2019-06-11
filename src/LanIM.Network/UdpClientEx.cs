@@ -1,9 +1,9 @@
 ﻿using Com.LanIM.Common;
 using Com.LanIM.Common.Logger;
 using Com.LanIM.Common.Security;
-using Com.LanIM.Network.Packet;
-using Com.LanIM.Network.PacketEncoder;
-using Com.LanIM.Network.PacketResolver;
+using Com.LanIM.Network.Packets;
+using Com.LanIM.Network.PacketsEncoder;
+using Com.LanIM.Network.PacketsResolver;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -94,10 +94,10 @@ namespace Com.LanIM.Network
                 {
                     IPEndPoint remoteEp = null;
                     byte[] buff = _client.EndReceive(ar, ref remoteEp);
-                    LoggerFactory.Instance().Debug("[recv]{0}", UdpPacket.ENCODING.GetString(buff));
+                    LoggerFactory.Instance().Debug("[recv]{0}", Packet.ENCODING.GetString(buff));
 
-                    IUdpPacketResolver resolver = UdpPacketResolverFactory.CreateResolver(buff, this);
-                    UdpPacket packet = resolver.Resolve();
+                    IPacketResolver resolver = PacketResolverFactory.CreateResolver(buff, 0, buff.Length, this.SecurityKeys.Private);
+                    UdpPacket packet = resolver.Resolve() as UdpPacket;
 
                     if(packet == null)
                     {
@@ -163,7 +163,7 @@ namespace Com.LanIM.Network
 
             packet.GenerateID();
 
-            IUdpPacketEncoder encoder = UdpPacketEncoderFactory.CreateEncoder(packet);
+            IPacketEncoder encoder = PacketEncoderFactory.CreateEncoder(packet);
 
             byte[] buf = encoder.Encode();
             if (buf != null)
@@ -176,6 +176,10 @@ namespace Com.LanIM.Network
                 {
                     //超过大小的，分包？转TCP？
                 }
+            }
+            else
+            {
+                throw new Exception("未对应包! Send");
             }
         }
 

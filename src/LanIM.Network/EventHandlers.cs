@@ -8,4 +8,7 @@ namespace Com.LanIM.Network
 {
     public delegate void UdpClientSendEventHandler(object sender, UdpClientSendEventArgs args);
     public delegate void UdpClientReceiveEventHandler(object sender, UdpClientReceiveEventArgs args);
+
+    public delegate void FileTransportEventHandler(object sender, FileTransportEventArgs args);
+    public delegate void FileTransportErrorEventHandler(object sender, FileTransportErrorEventArgs args);
 }

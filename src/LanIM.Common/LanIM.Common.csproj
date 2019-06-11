@@ -52,6 +52,8 @@
     <Compile Include="Logger\SimpleTextLogger.cs" />
     <Compile Include="LanFile.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Security\MD5.cs" />
+    <Compile Include="Security\DES.cs" />
     <Compile Include="Security\SecurityKeys.cs" />
     <Compile Include="Security\RSA.cs" />
     <Compile Include="Security\SecurityFactory.cs" />

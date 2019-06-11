@@ -1,4 +1,4 @@
-﻿using Com.LanIM.Network.Packet;
+﻿using Com.LanIM.Network.Packets;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,10 +7,10 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Com.LanIM.Network.PacketEncoder
+namespace Com.LanIM.Network.PacketsEncoder
 {
     //兼容IPMsg 3.42的包格式的解析类
-    public class IPMsgUdpPacketEncoder : IUdpPacketEncoder
+    public class IPMsgUdpPacketEncoder : IPacketEncoder
     {
 
         private IPMsgUdpPacket _packet;

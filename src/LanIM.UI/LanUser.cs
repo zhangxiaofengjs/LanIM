@@ -1,8 +1,9 @@
 ﻿using Com.LanIM.Common.Security;
 using Com.LanIM.Network;
-using Com.LanIM.Network.Packet;
+using Com.LanIM.Network.Packets;
 using LanIM.Common;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
@@ -16,7 +17,8 @@ namespace Com.LanIM.UI
     class LanUser
     {
         private UdpClientEx _client;
-
+        private FileTransportTcpListener _fileTransTcpListener;
+        
         //联系人一览
         public List<LanUser> Contacters { get; set; }
 
@@ -43,18 +45,31 @@ namespace Com.LanIM.UI
                 return user;
             }
         }
-        public byte[] PublicKey { get; set; }
+        private SecurityKeys _securityKeys = new SecurityKeys();
+        public SecurityKeys SecurityKeys
+        {
+            get
+            {
+                return _securityKeys;
+            }
+            set
+            {
+                _securityKeys = value;
+            }
+        }
         public IPv4Address IP { get; set; }
         public string NickName { get; set; }
         public int Port { get; set; }
         public LanUserState State { get; set; }
-        
+
         public event SendEventHandler Send;
         public event UserStateEventHandler UserEntry;
         public event UserStateEventHandler UserExit;
         public event UserStateEventHandler UserStateChange;
         public event TextMessageReceivedHandler TextMessageReceived;
         public event ImageReceivedHandler ImageReceived;
+        public event FileTransportRequestedHandler FileTransportRequested;
+        public event FileTransportEventHandler FileTransportProgressChanged;
 
         public LanUser()
         {
@@ -79,13 +94,15 @@ namespace Com.LanIM.UI
 
         public bool Login()
         {
+            this.SecurityKeys = SecurityFactory.GenerateKeys();
+
             if (_client != null)
             {
                 _client.Close();
             }
             _client = new UdpClientEx(SynchronizationContext.Current);
             _client.Port = this.Port;
-            _client.SecurityKeys = SecurityFactory.GenerateKeys();
+            _client.SecurityKeys = this.SecurityKeys;
             _client.SendPacket += this.SendPacketEvent;
             _client.ReceivePacket += this.ReceivePacketEvent;
 
@@ -98,6 +115,14 @@ namespace Com.LanIM.UI
             //发送上线
             SendEntryPacket();
 
+            //文件或者大图片发送监听启动
+            if(_fileTransTcpListener != null)
+            {
+                _fileTransTcpListener.Close();
+            }
+            _fileTransTcpListener = new FileTransportTcpListener();
+            _fileTransTcpListener.SecurityKeys = this.SecurityKeys;
+            _fileTransTcpListener.Listen(IP.Address, this.Port);
             return true;
         }
 
@@ -118,7 +143,7 @@ namespace Com.LanIM.UI
             _client.Send(packet);
         }
 
-        internal void Close()
+        public void Close()
         {
             _client.Close();
         }
@@ -145,7 +170,7 @@ namespace Com.LanIM.UI
             packet.MAC = this.IP.MAC;
 
             UdpPacketTextExtend extend = new UdpPacketTextExtend();
-            extend.EncryptKey = user.PublicKey;
+            extend.EncryptKey = user.SecurityKeys.Public;
             extend.Text = text;
             packet.Extend = extend;
 
@@ -161,7 +186,7 @@ namespace Com.LanIM.UI
             packet.MAC = this.IP.MAC;
 
             UdpPacketImageExtend extend = new UdpPacketImageExtend();
-            extend.EncryptKey = user.PublicKey;
+            extend.EncryptKey = user.SecurityKeys.Public;
             extend.Image = image;
             packet.Extend = extend;
 
@@ -177,13 +202,24 @@ namespace Com.LanIM.UI
             packet.Command = UdpPacket.CMD_SEND_FILE_REQUEST | UdpPacket.CMD_OPTION_NEED_RESPONSE;
             packet.MAC = this.IP.MAC;
 
-            UdpPacketFileExtend extend = new UdpPacketFileExtend();
-            extend.EncryptKey = user.PublicKey;
-            extend.FileInfo = new LanFile(path);
+            UdpPacketSendFileRequestExtend extend = new UdpPacketSendFileRequestExtend();
+            extend.EncryptKey = user.SecurityKeys.Public;
+            extend.File = new LanFile(path);
 
             packet.Extend = extend;
 
             _client.Send(packet);
+
+            //保存要发送文件一览
+            TransportFile file = new TransportFile(packet.ID, user.IP.Address, user.Port, user.SecurityKeys.Public, extend.File);
+            _fileTransTcpListener.AddTransportFile(file);
+        }
+
+        public void ReceiveFile(TransportFile file)
+        {
+            FileTransportTcpClient client = new FileTransportTcpClient(SynchronizationContext.Current);
+            client.ProgressChanged += FileTransportProgressChanged;
+            client.Receive(file);
         }
 
         private void SendPacketEvent(object sender, UdpClientSendEventArgs args)
@@ -207,8 +243,8 @@ namespace Com.LanIM.UI
            
             if (packet.CheckSendResponse)
             {
-                //需要回应收到包
-                if (packet.Version == UdpPacket.VERSION)
+                #region 需要回应收到包
+                if (packet.Version == Packet.VERSION)
                 {
                     UdpPacket packetRsp = new UdpPacket();
                     packetRsp.Remote = packet.Remote;
@@ -222,6 +258,7 @@ namespace Com.LanIM.UI
 
                     _client.Send(packetRsp);
                 }
+                #endregion
             }
 
             if (packet.CMD == UdpPacket.CMD_ENTRY)
@@ -299,6 +336,21 @@ namespace Com.LanIM.UI
                 }
                 #endregion
             }
+            else if (packet.CMD == UdpPacket.CMD_SEND_FILE_REQUEST)
+            {
+                #region CMD_SEND_FILE_REQUEST
+                if (FileTransportRequested != null)
+                {
+                    LanUser user = this[packet.MAC];
+                    UdpPacketSendFileRequestExtend extend = packet.Extend as UdpPacketSendFileRequestExtend;
+
+                    TransportFile file = new TransportFile(packet.ID, user.IP.Address, user.Port, user.SecurityKeys.Public, extend.File);
+                    
+                    FileTransportRequestedEventArgs stateArgs = new FileTransportRequestedEventArgs(user, file);
+                    FileTransportRequested(this, stateArgs);
+                }
+                #endregion
+            }
             else if (packet.CMD == UdpPacket.CMD_RESPONSE)
             {
                 UdpPacketResponseExtend extend = packet.Extend as UdpPacketResponseExtend;
@@ -313,7 +365,7 @@ namespace Com.LanIM.UI
         {
             UdpPacketEntryExtend extend = packet.Extend as UdpPacketEntryExtend;
            LanUser user = this[packet.MAC];
-            user.PublicKey = extend.PublicKey;
+            user.SecurityKeys.Public = extend.PublicKey;
             user.IP.MAC = packet.MAC;
             user.IP.Address = packet.Remote;
             user.NickName = extend.NickName;

@@ -1,6 +1,7 @@
 ﻿using Com.LanIM.Common.Logger;
 using Com.LanIM.Common.Security;
-using Com.LanIM.Network.Packet;
+using Com.LanIM.Network.Packets;
+using LanIM.Common;
 using System;
 using System.Collections.Generic;
 using System.Drawing.Imaging;
@@ -11,9 +12,9 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Com.LanIM.Network.PacketEncoder
+namespace Com.LanIM.Network.PacketsEncoder
 {
-    public class DefaulUdpPacketEncoder : IUdpPacketEncoder
+    public class DefaulUdpPacketEncoder : IPacketEncoder
     {
         private UdpPacket _packet;
 
@@ -32,6 +33,7 @@ namespace Com.LanIM.Network.PacketEncoder
 
                     //包头
                     wtr.Write(_packet.Version);
+                    wtr.Write(_packet.Type);
                     wtr.Write(_packet.ID);
                     wtr.Write(_packet.Command);
                     wtr.Write(_packet.MAC);
@@ -46,6 +48,9 @@ namespace Com.LanIM.Network.PacketEncoder
                             break;
                         case UdpPacket.CMD_SEND_IMAGE:
                             EncodeImageExtend(wtr, _packet.Extend);
+                            break;
+                        case UdpPacket.CMD_SEND_FILE_REQUEST:
+                            EncodeSendFileRequestExtend(wtr, _packet.Extend);
                             break;
                         case UdpPacket.CMD_RESPONSE:
                             EncodeResponseExtend(wtr, _packet.Extend);
@@ -124,6 +129,35 @@ namespace Com.LanIM.Network.PacketEncoder
                 wtr.Write(enBuf);
             }
         }
-        
+
+        private static void EncodeSendFileRequestExtend(BinaryWriter wtr, object extendObj)
+        {
+            UdpPacketSendFileRequestExtend extend = extendObj as UdpPacketSendFileRequestExtend;
+            if (extend == null)
+            {
+                throw new Exception("[EncodeImageExtend]未想定附加包");
+            }
+
+            using (MemoryStream ms = new MemoryStream())
+            {
+                using (BinaryWriter bw = new BinaryWriter(ms))
+                {
+                    LanFile file = extend.File;
+
+                    bw.Write(file.Name);
+                    bw.Write(file.Length);
+                    bw.Write(file.IsFolder);
+
+                    bw.Close();
+                    ms.Close();
+
+                    byte[] buf = ms.ToArray();
+                    byte[] enBuf = SecurityFactory.Encrypt(buf, extend.EncryptKey);
+
+                    wtr.Write(enBuf.Length);
+                    wtr.Write(enBuf);
+                }
+            }
+        }
     }
 }
