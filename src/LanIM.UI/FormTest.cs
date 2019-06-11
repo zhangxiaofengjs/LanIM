@@ -115,9 +115,19 @@ namespace TeamIM
             _user.TextMessageReceived += _user_TextMessageReceived;
             _user.ImageReceived += _user_ImageReceived;
             _user.FileTransportRequested += _user_FileTransportRequested;
-            _user.FileTransportProgressChanged += _user_FileTransportProgressChanged;
+            _user.FileReceivedProgressChanged += _user_FileTransportProgressChanged;
+            _user.FileSendProgressChanged += _user_FileSendProgressChanged;
             buttonStart.Enabled = false;
             buttonClose.Enabled = true;
+        }
+
+        private void _user_FileSendProgressChanged(object sender, FileTransportEventArgs args)
+        {
+            TransportFile file = args.File;
+            OutputLog("发送文件[" + file.File.Name + "]," + file.Progress + "%," +
+                LanFile.HumanReadbleLen(file.TransportedLength) + "/" +
+                LanFile.HumanReadbleLen(file.File.Length) + "," +
+                LanFile.HumanReadbleLen(file.TransportedSpeed) + "/s");
         }
 
         private void _user_FileTransportProgressChanged(object sender, FileTransportEventArgs args)

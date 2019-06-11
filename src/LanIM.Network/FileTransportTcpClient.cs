@@ -42,7 +42,6 @@ namespace Com.LanIM.Network
         {
             this._context = context;
             this.ReceiveBufferSize = DEFAULT_RECEIVE_BUFFER_SIZE;
-            this.ProgressChangeInterval = DEFAULT_PROGRESS_CHANGE_INTERVAL;
         }
 
         public void Receive(TransportFile file)
@@ -73,6 +72,7 @@ namespace Com.LanIM.Network
                     extend.FileID = file.ID;
 
                     TcpPacket packet = new TcpPacket();
+                    packet.Command = TcpPacket.CMD_REQUEST_FILE_TRANSPORT;
                     packet.Extend = extend;
 
                     IPacketEncoder encoder = PacketEncoderFactory.CreateEncoder(packet);
@@ -88,7 +88,7 @@ namespace Com.LanIM.Network
                     {
                         fs.Write(buff, 0, len);
 
-                        file.TransportedLength += len;
+                        file.Transported(len);
 
                         if (file.TransportedLength == file.File.Length ||
                             (DateTime.Now.Ticks - lastProgressTicks) > this._progressChangeInterval) //避免进度太频繁，500ms一次

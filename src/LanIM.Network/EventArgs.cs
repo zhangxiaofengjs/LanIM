@@ -70,6 +70,7 @@ namespace Com.LanIM.Network
             FileOpenError,
             FileWriteError,
             NetworkError,
+            NotExistTransportId,
         }
         private ErrorReason _reason = ErrorReason.None;
 

@@ -69,7 +69,8 @@ namespace Com.LanIM.UI
         public event TextMessageReceivedHandler TextMessageReceived;
         public event ImageReceivedHandler ImageReceived;
         public event FileTransportRequestedHandler FileTransportRequested;
-        public event FileTransportEventHandler FileTransportProgressChanged;
+        public event FileTransportEventHandler FileReceivedProgressChanged;
+        public event FileTransportEventHandler FileSendProgressChanged;
 
         public LanUser()
         {
@@ -120,8 +121,9 @@ namespace Com.LanIM.UI
             {
                 _fileTransTcpListener.Close();
             }
-            _fileTransTcpListener = new FileTransportTcpListener();
+            _fileTransTcpListener = new FileTransportTcpListener(SynchronizationContext.Current);
             _fileTransTcpListener.SecurityKeys = this.SecurityKeys;
+            _fileTransTcpListener.ProgressChanged += FileSendProgressChanged;
             _fileTransTcpListener.Listen(IP.Address, this.Port);
             return true;
         }
@@ -218,7 +220,7 @@ namespace Com.LanIM.UI
         public void ReceiveFile(TransportFile file)
         {
             FileTransportTcpClient client = new FileTransportTcpClient(SynchronizationContext.Current);
-            client.ProgressChanged += FileTransportProgressChanged;
+            client.ProgressChanged += FileReceivedProgressChanged;
             client.Receive(file);
         }
 

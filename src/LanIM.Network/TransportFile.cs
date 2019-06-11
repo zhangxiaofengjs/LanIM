@@ -81,6 +81,7 @@ namespace Com.LanIM.Network
 
         internal void Transported(int len)
         {
+            this.TransportedLength += len;
         }
     }
 }
