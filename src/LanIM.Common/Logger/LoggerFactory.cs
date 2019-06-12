@@ -9,20 +9,49 @@ namespace Com.LanIM.Common.Logger
 {
     public class LoggerFactory
     {
-        private static SimpleTextLogger _simpleTextLoggerInstance;
-
+        private static List<ILogger> _loggers;
         public static void Initialize()
         {
-            if (_simpleTextLoggerInstance == null)
+            _loggers = new List<ILogger>();
+            _loggers.Add(new SimpleTextLogger());
+            _loggers.Add(new TraceLogger());
+
+            foreach (ILogger l in _loggers)
             {
-                _simpleTextLoggerInstance = new SimpleTextLogger();
-                _simpleTextLoggerInstance.Initialize();
+                l.Initialize();
             }
         }
 
-        public static ILogger Instance()
+        public static void UnInitialize()
         {
-            return _simpleTextLoggerInstance;
+            foreach (ILogger l in _loggers)
+            {
+                l.Uninitialize();
+            }
+        }
+
+        public static void Debug(string strLog, params object[] args)
+        {
+            foreach (ILogger l in _loggers)
+            {
+                l.Debug(strLog, args);
+            }
+        }
+
+        public static void Error(string strLog, params object[] args)
+        {
+            foreach (ILogger l in _loggers)
+            {
+                l.Error(strLog, args);
+            }
+        }
+
+        public static void Flush()
+        {
+            foreach (ILogger l in _loggers)
+            {
+                l.Flush();
+            }
         }
     }
 }

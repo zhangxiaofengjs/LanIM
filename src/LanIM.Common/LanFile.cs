@@ -62,7 +62,7 @@ namespace LanIM.Common
             }
             catch (Exception e)
             {
-                LoggerFactory.Instance().Error("文件删除失败。{0}", e);
+                LoggerFactory.Error("文件删除失败。{0}", e);
             }
             return false;
         }
@@ -75,7 +75,7 @@ namespace LanIM.Common
             }
             catch (Exception e)
             {
-                LoggerFactory.Instance().Error("文件打开失败。", e);
+                LoggerFactory.Error("文件打开失败。", e);
             }
             return null;
         }
@@ -88,7 +88,7 @@ namespace LanIM.Common
             }
             catch (Exception e)
             {
-                LoggerFactory.Instance().Error("文件打开失败。", e);
+                LoggerFactory.Error("文件打开失败。", e);
             }
             return null;
         }
@@ -110,10 +110,15 @@ namespace LanIM.Common
             }
             catch (Exception e)
             {
-                LoggerFactory.Instance().Error("文件移动失败。{0}", e);
+                LoggerFactory.Error("文件移动失败。{0}", e);
             }
             return false;
         }
 
+        public static long GetFileLength(string path)
+        {
+            FileInfo fi = new FileInfo(path);
+            return fi.Length;
+        }
     }
 }

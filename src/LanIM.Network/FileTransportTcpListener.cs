@@ -60,7 +60,7 @@ namespace Com.LanIM.Network
             }
             catch (Exception e)
             {
-                LoggerFactory.Instance().Error("FileTransTcpListener Start Error", e);
+                LoggerFactory.Error("FileTransTcpListener Start Error", e);
             }
             return false;
         }
@@ -87,7 +87,7 @@ namespace Com.LanIM.Network
             }
             catch (Exception e)
             {
-                LoggerFactory.Instance().Error("TcpClientEx Connect Error", e);
+                LoggerFactory.Error("TcpClientEx Connect Error", e);
             }
         }
 
@@ -176,7 +176,7 @@ namespace Com.LanIM.Network
             catch (Exception e)
             {
                 OnError(file, ErrorReason.NetworkError);
-                LoggerFactory.Instance().Error("网络错误", e);
+                LoggerFactory.Error("网络错误", e);
             }
             finally
             {

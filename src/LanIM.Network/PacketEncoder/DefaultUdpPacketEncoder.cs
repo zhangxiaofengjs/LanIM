@@ -67,7 +67,7 @@ namespace Com.LanIM.Network.PacketsEncoder
             }
             catch (Exception e)
             {
-                LoggerFactory.Instance().Error("[encoder error]", e);
+                LoggerFactory.Error("[encoder error]", e);
             }
             return null;
         }
@@ -121,7 +121,7 @@ namespace Com.LanIM.Network.PacketsEncoder
 
             using (MemoryStream ms = new MemoryStream())
             {
-                extend.Image.Save(ms, ImageFormat.Png);
+                extend.Image.GetThumbnailImage(100,100, null, IntPtr.Zero).Save(ms, ImageFormat.Png);
                 byte[] buf = ms.ToArray();
                 byte[] enBuf = SecurityFactory.Encrypt(buf, extend.EncryptKey);
 

@@ -51,7 +51,7 @@ namespace Com.LanIM.Network.PacketsResolver
             }
             catch (Exception e)
             {
-                LoggerFactory.Instance().Error("[resolve error]", e);
+                LoggerFactory.Error("[resolve error]", e);
             }
             return null;
         }

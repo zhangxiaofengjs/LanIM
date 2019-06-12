@@ -15,5 +15,6 @@ namespace Com.LanIM.Common.Logger
 
         void Debug(string strLog, params object[] args);
         void Error(string strLog, params object[] args);
+        void Flush();
     }
 }

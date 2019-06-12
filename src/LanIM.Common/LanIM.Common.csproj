@@ -49,6 +49,7 @@
     <Compile Include="Logger\ILogger.cs" />
     <Compile Include="Logger\LoggerFactory.cs" />
     <Compile Include="Logger\LoggerType.cs" />
+    <Compile Include="Logger\TraceLogger.cs" />
     <Compile Include="Logger\SimpleTextLogger.cs" />
     <Compile Include="LanFile.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

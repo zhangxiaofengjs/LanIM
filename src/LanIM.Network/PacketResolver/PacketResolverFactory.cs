@@ -1,4 +1,5 @@
-﻿using Com.LanIM.Common.Security;
+﻿using Com.LanIM.Common.Logger;
+using Com.LanIM.Common.Security;
 using Com.LanIM.Network.Packets;
 using System;
 using System.Collections.Generic;
@@ -36,7 +37,8 @@ namespace Com.LanIM.Network.PacketsResolver
             }
             else
             {
-                throw new Exception("未知包类型");
+                    LoggerFactory.Error("创建解码器失败，未知包类型");
+                    return null;
             }
         }
     }

@@ -1,11 +1,13 @@
 ﻿using Com.LanIM.Common.Security;
 using Com.LanIM.Network;
 using Com.LanIM.Network.Packets;
+using Com.LanIM.Network.PacketsEncoder;
 using LanIM.Common;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -93,7 +95,7 @@ namespace Com.LanIM.UI
             return null;
         }
 
-        public bool Login()
+        public bool Listen()
         {
             this.SecurityKeys = SecurityFactory.GenerateKeys();
 
@@ -113,9 +115,6 @@ namespace Com.LanIM.UI
                 return false;
             }
 
-            //发送上线
-            SendEntryPacket();
-
             //文件或者大图片发送监听启动
             if(_fileTransTcpListener != null)
             {
@@ -128,7 +127,8 @@ namespace Com.LanIM.UI
             return true;
         }
 
-        private void SendEntryPacket()
+        //发送上线
+        public void Login()
         {
             UdpPacket packet = new UdpPacket();
             packet.Remote = IP.BroadcastAddress;
@@ -179,20 +179,50 @@ namespace Com.LanIM.UI
             _client.Send(packet);
         }
 
+        public void SendImage(LanUser user, string imagePath)
+        {
+            SendImageCore(user, null, imagePath);
+        }
+
         public void SendImage(LanUser user, Image image)
         {
-            UdpPacket packet = new UdpPacket();
-            packet.Remote = user.IP.Address;
-            packet.Port = user.Port;
-            packet.Command = UdpPacket.CMD_SEND_IMAGE | UdpPacket.CMD_OPTION_NEED_RESPONSE;
-            packet.MAC = this.IP.MAC;
+            SendImageCore(user, image, null);
+        }
 
-            UdpPacketImageExtend extend = new UdpPacketImageExtend();
-            extend.EncryptKey = user.SecurityKeys.Public;
-            extend.Image = image;
-            packet.Extend = extend;
+        private void SendImageCore(LanUser user, Image image, string imagePath)
+        {
+            string path;
+            if (image != null)
+            {
+                path = LanConfig.Instance.GetTempFileName(".png");
+                image.Save(path, ImageFormat.Png);
+            }
+            else
+            {
+                path = imagePath;
+            }
 
-            _client.Send(packet);
+            long len = LanFile.GetFileLength(path);
+            if (len > UdpClientEx.UDP_MAX_BUF_SIZE)
+            {
+                //图像文件过大的话用文件形式发送
+                SendFile(user, path);
+            }
+            else
+            {
+                UdpPacket packet = new UdpPacket();
+                packet.Remote = user.IP.Address;
+                packet.Port = user.Port;
+                packet.Command = UdpPacket.CMD_SEND_IMAGE | UdpPacket.CMD_OPTION_NEED_RESPONSE;
+                packet.MAC = this.IP.MAC;
+
+                UdpPacketImageExtend extend = new UdpPacketImageExtend();
+                extend.EncryptKey = user.SecurityKeys.Public;
+                extend.Image = (image != null ? image : Image.FromFile(path));
+                packet.Extend = extend;
+
+                _client.Send(packet);
+            }
         }
 
         public void SendFile(LanUser user, string path)

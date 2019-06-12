@@ -21,6 +21,7 @@ namespace Com.LanIM.UI
 
             LoggerFactory.Initialize();
             Application.Run(new FormIPMsgTest());
-		}
-	}
+            LoggerFactory.UnInitialize();
+        }
+    }
 }

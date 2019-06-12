@@ -7,6 +7,7 @@ using Com.LanIM.Network.PacketsResolver;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
@@ -18,7 +19,7 @@ namespace Com.LanIM.Network
     {
         public const int DEFAULT_PORT = 2425;
         private const int SEND_RESPONSE_CHECK_DELAY = 5000;
-        private const int UDP_MAX_BUF_SIZE = 65507;
+        public const int UDP_MAX_BUF_SIZE = 59392;//本来是65507，考虑到有些余量定为58k
         
         private UdpClient _client;
         public int SendResponseCheckDelay { get; set; }
@@ -56,9 +57,17 @@ namespace Com.LanIM.Network
 
         public void Close()
         {
-            if (_client != null)
+            try
             {
-                _client.Close();
+                if (_client != null)
+                {
+                    _client.Close();
+                    _client.Dispose();
+                }
+            }
+            catch(Exception e)
+            {
+                LoggerFactory.Error("Close error", e);
             }
         }
 
@@ -81,7 +90,7 @@ namespace Com.LanIM.Network
             }
             catch(Exception e)
             {
-                LoggerFactory.Instance().Error("[listen error]", e);
+                LoggerFactory.Error("[listen error]", e);
             }
             return false;
         }
@@ -94,30 +103,49 @@ namespace Com.LanIM.Network
                 {
                     IPEndPoint remoteEp = null;
                     byte[] buff = _client.EndReceive(ar, ref remoteEp);
-                    LoggerFactory.Instance().Debug("[recv]{0}", Packet.ENCODING.GetString(buff));
+                    LoggerFactory.Debug("[recv]{0}", buff);
 
                     IPacketResolver resolver = PacketResolverFactory.CreateResolver(buff, 0, buff.Length, this.SecurityKeys.Private);
-                    UdpPacket packet = resolver.Resolve() as UdpPacket;
-
-                    if(packet == null)
+                    if (resolver != null)
                     {
-                        throw new Exception("收到未想定数据包");
+
+                        UdpPacket packet = resolver.Resolve() as UdpPacket;
+
+                        if (packet != null)
+                        {
+                            packet.Remote = remoteEp.Address;
+                            packet.Port = remoteEp.Port;
+
+                            OnPackageReceived(packet);
+                        }
+                        else
+                        {
+                            //未想定的包
+                        }
                     }
-
-                    packet.Remote = remoteEp.Address;
-                    packet.Port = remoteEp.Port;
-
-                    OnPackageReceived(packet);
-
-                    //继续下一次收包
-                    _client.BeginReceive(AsyncReceiveHandler, null);
+                    else
+                    {
+                        //未想定包解码器
+                    }
                 }
             }
             catch (Exception e)
             {
-                LoggerFactory.Instance().Error("[recv error]{0}", e);
+                LoggerFactory.Error("[recv error]{0}", e);
+            }
+
+            try
+            {
+                //继续下一次收包
+                _client.BeginReceive(AsyncReceiveHandler, null);
+            }
+            catch (Exception e)
+            {
+                LoggerFactory.Error("[recv error2]{0}", e);
+                LoggerFactory.Error("接受消息停止,需要重新监听....");
             }
         }
+
         protected void OnPackageReceived(UdpPacket packet)
         {
             _receivedPackets.Add(packet);
@@ -191,7 +219,7 @@ namespace Com.LanIM.Network
                 {
                     UdpPacket packet = ar.AsyncState as UdpPacket;
                     _client.EndSend(ar);
-                    LoggerFactory.Instance().Debug("[send]{0}", packet);
+                    LoggerFactory.Debug("[send]{0}", packet);
 
                     if (packet.CheckSendResponse)
                     {
@@ -211,7 +239,7 @@ namespace Com.LanIM.Network
                 }
                 catch (Exception e)
                 {
-                    LoggerFactory.Instance().Error("[send error]{0}", e);
+                    LoggerFactory.Error("[send error]{0}", e);
                 }
             }
         }

@@ -105,7 +105,7 @@ namespace Com.LanIM.Network
                 catch (Exception e)
                 {
                     OnError(file, ErrorReason.NetworkError);
-                    LoggerFactory.Instance().Error("网络错误:", e);
+                    LoggerFactory.Error("网络错误:", e);
                 }
                 finally
                 {

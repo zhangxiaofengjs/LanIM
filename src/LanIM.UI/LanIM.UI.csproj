@@ -58,6 +58,7 @@
     <Compile Include="FormTest.Designer.cs">
       <DependentUpon>FormTest.cs</DependentUpon>
     </Compile>
+    <Compile Include="LanConfig.cs" />
     <Compile Include="LanUser.cs" />
     <Compile Include="LanUserState.cs" />
     <Compile Include="Program.cs" />

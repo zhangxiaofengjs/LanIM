@@ -1,4 +1,5 @@
-﻿using Com.LanIM.Common.Security;
+﻿using Com.LanIM.Common.Logger;
+using Com.LanIM.Common.Security;
 using Com.LanIM.Network;
 using Com.LanIM.Network.Packets;
 using Com.LanIM.UI;
@@ -94,14 +95,7 @@ namespace TeamIM
         private void buttonEntry_Click(object sender, System.EventArgs e)
         {
             _user.NickName = textBoxNN.Text;
-            if (_user.Login())
-            {
-                OutputLog("登录成功:" + _user.ToString());
-            }
-            else
-            {
-                OutputLog("登录失败:" + _user.ToString());
-            }
+            _user.Login();
         }
 
         private void buttonStart_Click(object sender, System.EventArgs e)
@@ -117,6 +111,7 @@ namespace TeamIM
             _user.FileTransportRequested += _user_FileTransportRequested;
             _user.FileReceivedProgressChanged += _user_FileTransportProgressChanged;
             _user.FileSendProgressChanged += _user_FileSendProgressChanged;
+            _user.Listen();
             buttonStart.Enabled = false;
             buttonClose.Enabled = true;
         }
@@ -226,6 +221,11 @@ namespace TeamIM
             {
                 _user.SendFile(comboBoxUsers.SelectedItem as LanUser, ofd.FileName);
             }
+        }
+
+        private void buttonLogFlush_Click(object sender, EventArgs e)
+        {
+            LoggerFactory.Flush();
         }
     }
 }

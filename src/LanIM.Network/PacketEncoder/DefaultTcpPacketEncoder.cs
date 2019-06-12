@@ -46,7 +46,7 @@ namespace Com.LanIM.Network.PacketsEncoder
             }
             catch (Exception e)
             {
-                LoggerFactory.Instance().Error("[encoder error]", e);
+                LoggerFactory.Error("[encoder error]", e);
             }
             return null;
         }

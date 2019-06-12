@@ -32,7 +32,7 @@ namespace Com.LanIM.Common.Security
                 }
                 catch(Exception e)
                 {
-                    LoggerFactory.Instance().Error("[rsa genkey error]", e);
+                    LoggerFactory.Error("[rsa genkey error]", e);
                 }
                 finally
                 {
@@ -89,7 +89,7 @@ namespace Com.LanIM.Common.Security
                 }
                 catch (Exception e)
                 {
-                    LoggerFactory.Instance().Error("[rsa encrypt error]", e);
+                    LoggerFactory.Error("[rsa encrypt error]", e);
                 }
                 finally
                 {
@@ -146,7 +146,7 @@ namespace Com.LanIM.Common.Security
                 }
                 catch (Exception e)
                 {
-                    LoggerFactory.Instance().Error("[rsa decrypt error]", e);
+                    LoggerFactory.Error("[rsa decrypt error]", e);
                 }
                 finally
                 {

@@ -37,6 +37,7 @@
             this.groupBox2 = new System.Windows.Forms.GroupBox();
             this.buttonLanIMLogout = new System.Windows.Forms.Button();
             this.buttonLanIMLogin = new System.Windows.Forms.Button();
+            this.buttonSendFile = new System.Windows.Forms.Button();
             this.buttonSendPic = new System.Windows.Forms.Button();
             this.buttonLanIMSendMsg = new System.Windows.Forms.Button();
             this.comboBoxUsers = new System.Windows.Forms.ComboBox();
@@ -49,7 +50,7 @@
             this.pictureBox2 = new System.Windows.Forms.PictureBox();
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
             this.textBoxNN = new System.Windows.Forms.TextBox();
-            this.buttonSendFile = new System.Windows.Forms.Button();
+            this.buttonLogFlush = new System.Windows.Forms.Button();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.groupBox3.SuspendLayout();
@@ -95,7 +96,7 @@
             this.groupBox1.Controls.Add(this.button6);
             this.groupBox1.Controls.Add(this.button3);
             this.groupBox1.ForeColor = System.Drawing.Color.Blue;
-            this.groupBox1.Location = new System.Drawing.Point(16, 192);
+            this.groupBox1.Location = new System.Drawing.Point(16, 209);
             this.groupBox1.Name = "groupBox1";
             this.groupBox1.Size = new System.Drawing.Size(162, 110);
             this.groupBox1.TabIndex = 2;
@@ -133,7 +134,7 @@
             this.groupBox2.Controls.Add(this.buttonSendPic);
             this.groupBox2.Controls.Add(this.buttonLanIMSendMsg);
             this.groupBox2.ForeColor = System.Drawing.Color.DeepPink;
-            this.groupBox2.Location = new System.Drawing.Point(16, 308);
+            this.groupBox2.Location = new System.Drawing.Point(16, 325);
             this.groupBox2.Name = "groupBox2";
             this.groupBox2.Size = new System.Drawing.Size(162, 165);
             this.groupBox2.TabIndex = 3;
@@ -159,6 +160,16 @@
             this.buttonLanIMLogin.Text = "上线测试";
             this.buttonLanIMLogin.UseVisualStyleBackColor = true;
             this.buttonLanIMLogin.Click += new System.EventHandler(this.buttonEntry_Click);
+            // 
+            // buttonSendFile
+            // 
+            this.buttonSendFile.Location = new System.Drawing.Point(6, 132);
+            this.buttonSendFile.Name = "buttonSendFile";
+            this.buttonSendFile.Size = new System.Drawing.Size(144, 23);
+            this.buttonSendFile.TabIndex = 0;
+            this.buttonSendFile.Text = "发送文件测试";
+            this.buttonSendFile.UseVisualStyleBackColor = true;
+            this.buttonSendFile.Click += new System.EventHandler(this.buttonSendFile_Click);
             // 
             // buttonSendPic
             // 
@@ -228,6 +239,7 @@
             this.groupBox3.Controls.Add(this.comboBoxUsers);
             this.groupBox3.Controls.Add(this.buttonStart);
             this.groupBox3.Controls.Add(this.groupBox2);
+            this.groupBox3.Controls.Add(this.buttonLogFlush);
             this.groupBox3.Controls.Add(this.buttonClose);
             this.groupBox3.Controls.Add(this.groupBox1);
             this.groupBox3.Location = new System.Drawing.Point(12, 39);
@@ -287,15 +299,15 @@
             this.textBoxNN.TabIndex = 2;
             this.textBoxNN.Text = "蓝米";
             // 
-            // buttonSendFile
+            // buttonLogFlush
             // 
-            this.buttonSendFile.Location = new System.Drawing.Point(6, 132);
-            this.buttonSendFile.Name = "buttonSendFile";
-            this.buttonSendFile.Size = new System.Drawing.Size(144, 23);
-            this.buttonSendFile.TabIndex = 0;
-            this.buttonSendFile.Text = "发送文件测试";
-            this.buttonSendFile.UseVisualStyleBackColor = true;
-            this.buttonSendFile.Click += new System.EventHandler(this.buttonSendFile_Click);
+            this.buttonLogFlush.Location = new System.Drawing.Point(16, 180);
+            this.buttonLogFlush.Name = "buttonLogFlush";
+            this.buttonLogFlush.Size = new System.Drawing.Size(146, 23);
+            this.buttonLogFlush.TabIndex = 1;
+            this.buttonLogFlush.Text = "写日志到文件";
+            this.buttonLogFlush.UseVisualStyleBackColor = true;
+            this.buttonLogFlush.Click += new System.EventHandler(this.buttonLogFlush_Click);
             // 
             // FormIPMsgTest
             // 
@@ -341,5 +353,6 @@
         private System.Windows.Forms.RadioButton radioButton2;
         private System.Windows.Forms.RadioButton radioButton1;
         private System.Windows.Forms.Button buttonSendFile;
+        private System.Windows.Forms.Button buttonLogFlush;
     }
 }
