@@ -14,7 +14,7 @@ namespace Com.LanIM.Common.Logger
         {
             _loggers = new List<ILogger>();
             _loggers.Add(new SimpleTextLogger());
-            _loggers.Add(new TraceLogger());
+            _loggers.Add(new ConsoleLogger());
 
             foreach (ILogger l in _loggers)
             {

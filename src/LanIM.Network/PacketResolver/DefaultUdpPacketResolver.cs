@@ -27,51 +27,43 @@ namespace Com.LanIM.Network.PacketsResolver
 
         public Packet Resolve()
         {
-            try
+            using (MemoryStream ms = new MemoryStream(this._datagram))
             {
-                using (MemoryStream ms = new MemoryStream(this._datagram))
+                BinaryReader rdr = new BinaryReader(ms, Packet.ENCODING);
+
+                UdpPacket packet = new UdpPacket();
+                packet.Version = rdr.ReadInt16();
+                rdr.ReadInt16(); //skip packet.Type;
+                packet.ID = rdr.ReadInt64();
+                packet.Command = rdr.ReadUInt64();
+                packet.MAC = rdr.ReadString();
+
+                switch (packet.CMD)
                 {
-                    BinaryReader rdr = new BinaryReader(ms, Packet.ENCODING);
-
-                    UdpPacket packet = new UdpPacket();
-                    packet.Version = rdr.ReadInt16();
-                    rdr.ReadInt16(); //skip packet.Type;
-                    packet.ID = rdr.ReadInt64();
-                    packet.Command = rdr.ReadUInt64();
-                    packet.MAC = rdr.ReadString();
-
-                    switch (packet.CMD)
-                    {
-                        case UdpPacket.CMD_ENTRY:
-                            packet.Extend = ResolveEntryExtend(rdr);
-                            break;
-                        case UdpPacket.CMD_SEND_TEXT:
-                            packet.Extend = ResolveTextExtend(rdr, this._securityKey);
-                            break;
-                        case UdpPacket.CMD_SEND_IMAGE:
-                            packet.Extend = ResolveImageExtend(rdr, this._securityKey);
-                            break;
-                        case UdpPacket.CMD_SEND_FILE_REQUEST:
-                            packet.Extend = ResolveSendFileRequestExtend(rdr, this._securityKey);
-                            break;
-                        case UdpPacket.CMD_RESPONSE:
-                            packet.Extend = ResolveResponseExtend(rdr);
-                            break;
-                        case UdpPacket.CMD_STATE:
-                            packet.Extend = ResolveEntryExtend(rdr);
-                            break;
-                        default:
-                            break;
-                    }
-
-                    return packet;
+                    case UdpPacket.CMD_ENTRY:
+                        packet.Extend = ResolveEntryExtend(rdr);
+                        break;
+                    case UdpPacket.CMD_SEND_TEXT:
+                        packet.Extend = ResolveTextExtend(rdr, this._securityKey);
+                        break;
+                    case UdpPacket.CMD_SEND_IMAGE:
+                        packet.Extend = ResolveImageExtend(rdr, this._securityKey);
+                        break;
+                    case UdpPacket.CMD_SEND_FILE_REQUEST:
+                        packet.Extend = ResolveSendFileRequestExtend(rdr, this._securityKey);
+                        break;
+                    case UdpPacket.CMD_RESPONSE:
+                        packet.Extend = ResolveResponseExtend(rdr);
+                        break;
+                    case UdpPacket.CMD_STATE:
+                        packet.Extend = ResolveEntryExtend(rdr);
+                        break;
+                    default:
+                        break;
                 }
+
+                return packet;
             }
-            catch (Exception e)
-            {
-                LoggerFactory.Error("[resolve error]", e);
-            }
-            return null;
         }
 
         private static UdpPacketEntryExtend ResolveEntryExtend(BinaryReader rdr)

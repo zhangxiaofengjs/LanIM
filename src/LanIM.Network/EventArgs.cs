@@ -48,6 +48,20 @@ namespace Com.LanIM.Network
         }
     }
 
+    public class UdpClientErrorEventArgs
+    {
+        public Errors Error { get; private set; }
+        public string Message { get; private set; }
+        public Exception Exception { get; private set; }
+
+        public UdpClientErrorEventArgs(Errors error, string message, Exception e)
+        {
+            this.Error = error;
+            this.Message = message;
+            this.Exception = e;
+        }
+    }
+
     public class FileTransportEventArgs
     {
         private TransportFile _file = null;
@@ -64,22 +78,17 @@ namespace Com.LanIM.Network
 
     public class FileTransportErrorEventArgs: FileTransportEventArgs
     {
-        public enum ErrorReason
-        {
-            None,
-            FileOpenError,
-            FileWriteError,
-            NetworkError,
-            NotExistTransportId,
-        }
-        private ErrorReason _reason = ErrorReason.None;
+        private Errors _error = Errors.None;
 
-        public ErrorReason Reason { get => _reason; }
-
-        public FileTransportErrorEventArgs(TransportFile file, ErrorReason reason)
-            :base(file)
+        public Errors Error { get => _error; }
+        public string Message { get; private set; }
+        public Exception Exception { get; private set; }
+        public FileTransportErrorEventArgs(Errors error, string message, TransportFile file, Exception e)
+            : base(file)
         {
-            _reason = reason;
+            _error = error;
+            Message = message;
+            Exception = e;
         }
     }
 }

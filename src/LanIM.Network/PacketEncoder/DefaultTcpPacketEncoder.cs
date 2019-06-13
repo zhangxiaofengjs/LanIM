@@ -25,30 +25,22 @@ namespace Com.LanIM.Network.PacketsEncoder
 
         public byte[] Encode()
         {
-            try
+            using (MemoryStream ms = new MemoryStream(8042))
             {
-                using (MemoryStream ms = new MemoryStream(8042))
+                BinaryWriter wtr = new BinaryWriter(ms, Packet.ENCODING);
+
+                //包头
+                wtr.Write(_packet.Version);
+                wtr.Write(_packet.Type);
+                wtr.Write(_packet.Command);
+
+                if (_packet.Extend is TcpPacketRequestFileTransportExtend)
                 {
-                    BinaryWriter wtr = new BinaryWriter(ms, Packet.ENCODING);
-
-                    //包头
-                    wtr.Write(_packet.Version);
-                    wtr.Write(_packet.Type);
-                    wtr.Write(_packet.Command);
-
-                    if (_packet.Extend is TcpPacketRequestFileTransportExtend)
-                    {
-                        Encode(wtr, _packet.Extend as TcpPacketRequestFileTransportExtend);
-                    }
-
-                    return ms.ToArray();
+                    Encode(wtr, _packet.Extend as TcpPacketRequestFileTransportExtend);
                 }
+
+                return ms.ToArray();
             }
-            catch (Exception e)
-            {
-                LoggerFactory.Error("[encoder error]", e);
-            }
-            return null;
         }
 
         private static void Encode(BinaryWriter wtr, TcpPacketRequestFileTransportExtend extend)

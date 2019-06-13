@@ -27,33 +27,25 @@ namespace Com.LanIM.Network.PacketsResolver
 
         public Packet Resolve()
         {
-            try
+            using (MemoryStream ms = new MemoryStream(this._datagram))
             {
-                using (MemoryStream ms = new MemoryStream(this._datagram))
+                BinaryReader rdr = new BinaryReader(ms, Packet.ENCODING);
+
+                TcpPacket packet = new TcpPacket();
+                packet.Version = rdr.ReadInt16();
+                rdr.ReadInt16();//skip packet.Type
+                packet.Command = rdr.ReadUInt64();
+
+                switch (packet.CMD)
                 {
-                    BinaryReader rdr = new BinaryReader(ms, Packet.ENCODING);
-
-                    TcpPacket packet = new TcpPacket();
-                    packet.Version = rdr.ReadInt16();
-                    rdr.ReadInt16();//skip packet.Type
-                    packet.Command = rdr.ReadUInt64();
-
-                    switch (packet.CMD)
-                    {
-                        case TcpPacket.CMD_REQUEST_FILE_TRANSPORT:
-                            packet.Extend = ResolveRequestFileTransportExtend(rdr, _securityKey);
-                            break;
-                        default:
-                            break;
-                    }
-                    return packet;
+                    case TcpPacket.CMD_REQUEST_FILE_TRANSPORT:
+                        packet.Extend = ResolveRequestFileTransportExtend(rdr, _securityKey);
+                        break;
+                    default:
+                        break;
                 }
+                return packet;
             }
-            catch (Exception e)
-            {
-                LoggerFactory.Error("[resolve error]", e);
-            }
-            return null;
         }
 
         private static TcpPacketRequestFileTransportExtend ResolveRequestFileTransportExtend(BinaryReader rdr, byte[] priKey)

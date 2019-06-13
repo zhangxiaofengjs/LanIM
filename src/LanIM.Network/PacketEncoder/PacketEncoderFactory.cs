@@ -27,7 +27,7 @@ namespace Com.LanIM.Network.PacketsEncoder
             }
             else
             {
-                throw new Exception("未知的包" + packet.ToString());
+                throw new Exception("创建加密器失败。");
             }
         }
     }

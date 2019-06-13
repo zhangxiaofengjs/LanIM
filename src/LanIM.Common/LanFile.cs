@@ -67,32 +67,6 @@ namespace LanIM.Common
             return false;
         }
 
-        public static FileStream OpenCreateFileStream(string path)
-        {
-            try
-            {
-                return new FileStream(path, FileMode.Create);
-            }
-            catch (Exception e)
-            {
-                LoggerFactory.Error("文件打开失败。", e);
-            }
-            return null;
-        }
-
-        public static FileStream OpenReadFileStream(string path)
-        {
-            try
-            {
-                return new FileStream(path, FileMode.Open);
-            }
-            catch (Exception e)
-            {
-                LoggerFactory.Error("文件打开失败。", e);
-            }
-            return null;
-        }
-
         public static bool Rename(string srcPath, string desPath)
         {
             try

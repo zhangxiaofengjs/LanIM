@@ -25,51 +25,43 @@ namespace Com.LanIM.Network.PacketsEncoder
 
         public byte[] Encode()
         {
-            try
+            using (MemoryStream ms = new MemoryStream(8042))
             {
-                using (MemoryStream ms = new MemoryStream(8042))
+                BinaryWriter wtr = new BinaryWriter(ms, UdpPacket.ENCODING);
+
+                //包头
+                wtr.Write(_packet.Version);
+                wtr.Write(_packet.Type);
+                wtr.Write(_packet.ID);
+                wtr.Write(_packet.Command);
+                wtr.Write(_packet.MAC);
+
+                switch (_packet.CMD)
                 {
-                    BinaryWriter wtr = new BinaryWriter(ms, UdpPacket.ENCODING);
-
-                    //包头
-                    wtr.Write(_packet.Version);
-                    wtr.Write(_packet.Type);
-                    wtr.Write(_packet.ID);
-                    wtr.Write(_packet.Command);
-                    wtr.Write(_packet.MAC);
-
-                    switch (_packet.CMD)
-                    {
-                        case UdpPacket.CMD_ENTRY:
-                            EncodeEntryExtend(wtr, _packet.Extend);
-                            break;
-                        case UdpPacket.CMD_SEND_TEXT:
-                            EncodeTextExtend(wtr, _packet.Extend);
-                            break;
-                        case UdpPacket.CMD_SEND_IMAGE:
-                            EncodeImageExtend(wtr, _packet.Extend);
-                            break;
-                        case UdpPacket.CMD_SEND_FILE_REQUEST:
-                            EncodeSendFileRequestExtend(wtr, _packet.Extend);
-                            break;
-                        case UdpPacket.CMD_RESPONSE:
-                            EncodeResponseExtend(wtr, _packet.Extend);
-                            break;
-                        case UdpPacket.CMD_STATE:
-                            EncodeEntryExtend(wtr, _packet.Extend);
-                            break;
-                        default:
-                            break;
-                    }
-
-                    return ms.ToArray();
+                    case UdpPacket.CMD_ENTRY:
+                        EncodeEntryExtend(wtr, _packet.Extend);
+                        break;
+                    case UdpPacket.CMD_SEND_TEXT:
+                        EncodeTextExtend(wtr, _packet.Extend);
+                        break;
+                    case UdpPacket.CMD_SEND_IMAGE:
+                        EncodeImageExtend(wtr, _packet.Extend);
+                        break;
+                    case UdpPacket.CMD_SEND_FILE_REQUEST:
+                        EncodeSendFileRequestExtend(wtr, _packet.Extend);
+                        break;
+                    case UdpPacket.CMD_RESPONSE:
+                        EncodeResponseExtend(wtr, _packet.Extend);
+                        break;
+                    case UdpPacket.CMD_STATE:
+                        EncodeEntryExtend(wtr, _packet.Extend);
+                        break;
+                    default:
+                        break;
                 }
+
+                return ms.ToArray();
             }
-            catch (Exception e)
-            {
-                LoggerFactory.Error("[encoder error]", e);
-            }
-            return null;
         }
 
         private static void EncodeEntryExtend(BinaryWriter wtr, object extendObj)

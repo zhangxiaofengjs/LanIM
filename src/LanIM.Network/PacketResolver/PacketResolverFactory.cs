@@ -27,7 +27,7 @@ namespace Com.LanIM.Network.PacketsResolver
 
             short type = BitConverter.ToInt16(datagram, 2);
 
-            if(type == Packet.PACKTE_TYPE_UDP)
+            if (type == Packet.PACKTE_TYPE_UDP)
             {
                 return new DefaultUdpPacketResolver(datagram, securityKey);
             }
@@ -37,8 +37,7 @@ namespace Com.LanIM.Network.PacketsResolver
             }
             else
             {
-                    LoggerFactory.Error("创建解码器失败，未知包类型");
-                    return null;
+                throw new Exception("创建包解码器失败，未知包类型。");
             }
         }
     }

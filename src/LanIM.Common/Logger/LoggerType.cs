@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace Com.LanIM.Common.Logger
 {
+    [Flags]
     public enum LoggerType
     {
         Info,

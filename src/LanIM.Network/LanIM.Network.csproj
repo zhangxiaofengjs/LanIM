@@ -42,6 +42,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Errors.cs" />
     <Compile Include="FileTransportTcpListener.cs" />
     <Compile Include="PacketEncoder\DefaultTcpPacketEncoder.cs" />
     <Compile Include="PacketResolver\DefaultTcpPacketResolver.cs" />

@@ -51,25 +51,37 @@ namespace Com.LanIM.Network
         {
             try
             {
+                LoggerFactory.Debug("try listen.local={0}, port={1}", local, port);
+
                 this._tcpListener = new TcpListener(local, port);
                 this._tcpListener.AllowNatTraversal(true);
                 this._tcpListener.Start();
 
+                LoggerFactory.Debug("listening...");
                 this._tcpListener.BeginAcceptTcpClient(AsyncAcceptClientHandler, null);
                 return true;
             }
             catch (Exception e)
             {
-                LoggerFactory.Error("FileTransTcpListener Start Error", e);
+                OnError(Errors.NetworkError, "监听失败。", null, e);
             }
             return false;
         }
 
         public void Close()
         {
-            if (this._tcpListener != null)
+            LoggerFactory.Debug("try close listener");
+            try
             {
-                this._tcpListener.Stop();
+                if (this._tcpListener != null)
+                {
+                    this._tcpListener.Stop();
+                }
+                LoggerFactory.Debug("listener closed");
+            }
+            catch (Exception e)
+            {
+                OnError(Errors.NetworkError, "停止监听失败。", null, e);
             }
         }
 
@@ -77,61 +89,88 @@ namespace Com.LanIM.Network
         {
             try
             {
+                LoggerFactory.Debug("try accept client");
                 TcpClient client = _tcpListener.EndAcceptTcpClient(ar);
 
+                LoggerFactory.Debug("accepted client and start send file task");
                 //启动线程任务进行发送文件处理
                 _taskFactory.StartNew(new Action<object>(SendFileHandler), client);
 
                 //继续下一个监听
+                LoggerFactory.Debug("try accept next client");
                 this._tcpListener.BeginAcceptTcpClient(AsyncAcceptClientHandler, null);
             }
             catch (Exception e)
             {
-                LoggerFactory.Error("TcpClientEx Connect Error", e);
+                OnError(Errors.NetworkError, "接收客户端连接失败。", null, e);
             }
         }
 
         private void SendFileHandler(object clientobj)
         {
-            TcpClient client = clientobj as TcpClient;
-            NetworkStream ns = client.GetStream();
+            LoggerFactory.Debug("begin send file");
 
-            if (!ns.CanRead)
+            TcpClient client = null;
+            NetworkStream ns = null;
+            try
             {
-                //想定外
-                ns.Close();
-                client.Close();
-                OnError(null, ErrorReason.NotExistTransportId);
+                client = clientobj as TcpClient;
+                ns = client.GetStream();
+
+                if (!ns.CanRead)
+                {
+                    //想定外
+                    ns.Close();
+                    client.Close();
+                    OnError(Errors.NotExistTransportId, "未收到传送ID", null, null);
+                    return;
+                }
+            }
+            catch (Exception e)
+            {
+                OnError(Errors.NetworkError, "尝试收取传送ID失败", null, e);
                 return;
             }
 
+            LoggerFactory.Debug("get file id");
             //取得传送的文件ID
-            byte[] buff = new byte[this.ReceiveBufferSize];
-            int len = ns.Read(buff, 0, buff.Length);
-            IPacketResolver resolver = PacketResolverFactory.CreateResolver(buff, 0, len, this.SecurityKeys.Private);
-            TcpPacket packet = resolver.Resolve() as TcpPacket;
-            if (packet == null)
+            byte[] buff = null;
+            int len = 0;
+            try
             {
-                ns.Close();
-                client.Close();
-                OnError(null, ErrorReason.NotExistTransportId);
-                return;
+                buff = new byte[this.ReceiveBufferSize];
+                len = ns.Read(buff, 0, buff.Length);
             }
-            TcpPacketRequestFileTransportExtend extend = packet.Extend as TcpPacketRequestFileTransportExtend;
-            if (extend == null)
+            catch (Exception e)
             {
                 ns.Close();
                 client.Close();
-                OnError(null, ErrorReason.NotExistTransportId);
+                OnError(Errors.NetworkError, "尝试收取传送ID失败", null, e);
                 return;
             }
 
+            TcpPacket packet = null;
+            try
+            {
+                IPacketResolver resolver = PacketResolverFactory.CreateResolver(buff, 0, len, this.SecurityKeys.Private);
+                packet = resolver.Resolve() as TcpPacket;
+            }
+            catch (Exception e)
+            {
+                ns.Close();
+                client.Close();
+                OnError(Errors.ResolveError, "解密文件ID失败", null, e);
+                return;
+            }
+
+            LoggerFactory.Debug("get file");
             TransportFile file = null;
+            TcpPacketRequestFileTransportExtend extend = packet.Extend as TcpPacketRequestFileTransportExtend;
             if (!_transportFileDic.TryRemove(extend.FileID, out file))
             {
                 ns.Close();
                 client.Close();
-                OnError(null, ErrorReason.NotExistTransportId);
+                OnError(Errors.NotExistTransportId, "不存在的文件ID=" + extend.FileID, null, null);
                 return;
             }
 
@@ -140,19 +179,25 @@ namespace Com.LanIM.Network
             {
                 ns.Close();
                 client.Close();
-                OnError(file, ErrorReason.FileOpenError);
+                OnError(Errors.FileOpenError, "不存在的文件:" + lanFile.Path, file, null);
                 return;
             }
 
-            FileStream fs = LanFile.OpenReadFileStream(lanFile.Path);
-            if (fs == null)
+            LoggerFactory.Debug("open file");
+            FileStream fs = null;
+            try
+            {
+                fs = new FileStream(lanFile.Path, FileMode.Open);
+            }
+            catch (Exception e)
             {
                 ns.Close();
                 client.Close();
-                OnError(file, ErrorReason.FileOpenError);
+                OnError(Errors.FileOpenError, "文件打开失败", file, e);
                 return;
             }
 
+            LoggerFactory.Debug("sending file");
             try
             {
                 //发送文件
@@ -175,8 +220,7 @@ namespace Com.LanIM.Network
             }
             catch (Exception e)
             {
-                OnError(file, ErrorReason.NetworkError);
-                LoggerFactory.Error("网络错误", e);
+                OnError(Errors.NetworkError, "文件传输网络错误", file, e);
             }
             finally
             {
@@ -188,10 +232,12 @@ namespace Com.LanIM.Network
 
                 OnCompleted(file);
             }
+            LoggerFactory.Debug("end send file");
         }
 
         protected virtual void OnProgressChanged(TransportFile file)
         {
+            LoggerFactory.Debug("send file progress change: file={0}, progress={1}", file, file.Progress);
             FileTransportEventArgs args = new FileTransportEventArgs(file);
             if (_context == null)
             {
@@ -214,6 +260,7 @@ namespace Com.LanIM.Network
 
         protected virtual void OnCompleted(TransportFile file)
         {
+            LoggerFactory.Debug("send file completed");
             FileTransportEventArgs args = new FileTransportEventArgs(file);
             if (_context == null)
             {
@@ -234,9 +281,10 @@ namespace Com.LanIM.Network
             }
         }
 
-        protected virtual void OnError(TransportFile file, ErrorReason reason)
+        protected virtual void OnError(Errors error, string message, TransportFile file, Exception e)
         {
-            FileTransportErrorEventArgs args = new FileTransportErrorEventArgs(file, reason);
+            LoggerFactory.Error("{0}, file={1}, exception={2}", message, file, e);
+            FileTransportErrorEventArgs args = new FileTransportErrorEventArgs(error, message, file, e);
             if (_context == null)
             {
                 ErrorSendOrPostCallBack(args);
@@ -258,6 +306,7 @@ namespace Com.LanIM.Network
 
         public void AddTransportFile(TransportFile file)
         {
+            LoggerFactory.Debug("add ready send file={0}", file);
             _transportFileDic.TryAdd(file.ID, file);
         }
     }

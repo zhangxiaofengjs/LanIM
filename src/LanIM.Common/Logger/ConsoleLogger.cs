@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Com.LanIM.Common.Logger
 {
-    class TraceLogger : ILogger
+    class ConsoleLogger : ILogger
     {
         public bool Initialize()
         {
@@ -22,24 +22,18 @@ namespace Com.LanIM.Common.Logger
 
         public void Debug(string strLog, params object[] args)
         {
-            string log = Format(LoggerType.Debug, strLog, args);
-            Trace.WriteLine(log);
-        }
-
-        private static string Format(LoggerType type, string strLog, object[] args)
-        {
-             return DateTime.Now.ToString("[yyyy-MM-dd HH:mm:ss]") + string.Format(strLog, args);
+            string log = LoggerFormater.Format(LoggerType.Debug, strLog, args);
+            Console.WriteLine(log);
         }
 
         public void Error(string strLog, params object[] args)
         {
-            string log = Format(LoggerType.Error, strLog, args);
-            Trace.WriteLine(log);
+            string log = LoggerFormater.Format(LoggerType.Error, strLog, args);
+            Console.WriteLine(log);
         }
 
         public void Flush()
         {
-            Trace.Flush();
         }
     }
 }
