@@ -68,8 +68,10 @@ namespace Com.LanIM.Network
                 NetworkStream ns = null;
                 try
                 {
-                    tcpClient = new TcpClient(AddressFamily.InterNetwork);
-                    tcpClient.ReceiveBufferSize = this.ReceiveBufferSize;
+                    tcpClient = new TcpClient(AddressFamily.InterNetwork)
+                    {
+                        ReceiveBufferSize = this.ReceiveBufferSize
+                    };
 
                     tcpClient.Connect(file.Remote, file.Port);
 
@@ -88,13 +90,17 @@ namespace Com.LanIM.Network
                 try
                 {
                     //发送要接受的文件ID
-                    TcpPacketRequestFileTransportExtend extend = new TcpPacketRequestFileTransportExtend();
-                    extend.EncryptKey = file.PublicKey;
-                    extend.FileID = file.ID;
+                    TcpPacketRequestFileTransportExtend extend = new TcpPacketRequestFileTransportExtend
+                    {
+                        EncryptKey = file.PublicKey,
+                        FileID = file.ID
+                    };
 
-                    packet = new TcpPacket();
-                    packet.Command = TcpPacket.CMD_REQUEST_FILE_TRANSPORT;
-                    packet.Extend = extend;
+                    packet = new TcpPacket
+                    {
+                        Command = TcpPacket.CMD_REQUEST_FILE_TRANSPORT,
+                        Extend = extend
+                    };
 
                     IPacketEncoder encoder = PacketEncoderFactory.CreateEncoder(packet);
                     buff = encoder.Encode();
@@ -185,10 +191,7 @@ namespace Com.LanIM.Network
 
         private void ProgressChangedSendOrPostCallBack(object state)
         {
-            if (ProgressChanged != null)
-            {
-                ProgressChanged(this, state as FileTransportEventArgs);
-            }
+            ProgressChanged?.Invoke(this, state as FileTransportEventArgs);
         }
 
         protected virtual void OnCompleted(TransportFile file)
@@ -208,10 +211,7 @@ namespace Com.LanIM.Network
 
         private void CompletedSendOrPostCallBack(object state)
         {
-            if (Completed != null)
-            {
-                Completed(this, state as FileTransportEventArgs);
-            }
+            Completed?.Invoke(this, state as FileTransportEventArgs);
         }
 
         protected virtual void OnError(Errors error, string message, TransportFile file, Exception e)
@@ -231,10 +231,7 @@ namespace Com.LanIM.Network
 
         private void ErrorSendOrPostCallBack(object state)
         {
-            if (Error != null)
-            {
-                Error(this, state as FileTransportErrorEventArgs);
-            }
+            Error?.Invoke(this, state as FileTransportErrorEventArgs);
         }
     }
 }

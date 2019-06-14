@@ -25,9 +25,11 @@ namespace Com.LanIM.Common.Security
                 try
                 {
                     // 获取私钥和公钥
-                    SecurityKeys keys = new SecurityKeys();
-                    keys.Public = rsa.ExportCspBlob(false);
-                    keys.Private = rsa.ExportCspBlob(true);
+                    SecurityKeys keys = new SecurityKeys
+                    {
+                        Public = rsa.ExportCspBlob(false),
+                        Private = rsa.ExportCspBlob(true)
+                    };
                     return keys;
                 }
                 catch(Exception e)

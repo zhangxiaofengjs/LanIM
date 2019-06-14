@@ -18,6 +18,8 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+#pragma warning disable IDE1006
+#pragma warning disable IDE0017
 
 namespace TeamIM
 {
@@ -109,7 +111,7 @@ namespace TeamIM
             _user.TextMessageReceived += _user_TextMessageReceived;
             _user.ImageReceived += _user_ImageReceived;
             _user.FileTransportRequested += _user_FileTransportRequested;
-            _user.FileReceivedProgressChanged += _user_FileTransportProgressChanged;
+            _user.FileReceiveProgressChanged += _user_FileTransportProgressChanged;
             _user.FileSendProgressChanged += _user_FileSendProgressChanged;
             _user.Listen();
             buttonStart.Enabled = false;

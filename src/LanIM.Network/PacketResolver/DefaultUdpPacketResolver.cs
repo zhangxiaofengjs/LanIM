@@ -16,8 +16,8 @@ namespace Com.LanIM.Network.PacketsResolver
 {
     public class DefaultUdpPacketResolver : IPacketResolver
     {
-        private byte[] _datagram;
-        private byte[] _securityKey;
+        private readonly byte[] _datagram;
+        private readonly byte[] _securityKey;
 
         public DefaultUdpPacketResolver(byte[] datagram, byte[] securityKey)
         {
@@ -79,8 +79,10 @@ namespace Com.LanIM.Network.PacketsResolver
 
         private static UdpPacketResponseExtend ResolveResponseExtend(BinaryReader rdr)
         {
-            UdpPacketResponseExtend extend = new UdpPacketResponseExtend();
-            extend.ID = rdr.ReadInt64();
+            UdpPacketResponseExtend extend = new UdpPacketResponseExtend
+            {
+                ID = rdr.ReadInt64()
+            };
 
             return extend;
         }

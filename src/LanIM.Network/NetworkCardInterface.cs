@@ -53,12 +53,14 @@ namespace Com.LanIM.Network
                 
                 if(ipAddr != null)
                 {
-                    IPv4Address addr = new IPv4Address();
-                    addr.Address = ipAddr;
-                    addr.Mask = ipMaskAddr;
-                    addr.GateWay = gwIp;
-                    addr.MAC = adapter.GetPhysicalAddress().ToString();
-                    addr.NetworkCardInterfaceType = GetNetworkInterfaceType(adapter);
+                    IPv4Address addr = new IPv4Address
+                    {
+                        Address = ipAddr,
+                        Mask = ipMaskAddr,
+                        GateWay = gwIp,
+                        MAC = adapter.GetPhysicalAddress().ToString(),
+                        NetworkCardInterfaceType = GetNetworkInterfaceType(adapter)
+                    };
                     addresss.Add(addr);
                 }
             }

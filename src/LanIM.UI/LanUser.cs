@@ -13,6 +13,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+#pragma warning disable IDE0017 // オブジェクトの初期化を簡略化します
 
 namespace Com.LanIM.UI
 {
@@ -23,7 +24,6 @@ namespace Com.LanIM.UI
         
         //联系人一览
         public List<LanUser> Contacters { get; set; }
-
         LanUser this[string mac]
         {
             get
@@ -64,15 +64,32 @@ namespace Com.LanIM.UI
         public int Port { get; set; }
         public LanUserState State { get; set; }
 
-        public event SendEventHandler Send;
+        //用户上下线等状态变化
         public event UserStateEventHandler UserEntry;
         public event UserStateEventHandler UserExit;
         public event UserStateEventHandler UserStateChange;
+
+        //文字消息接收
         public event TextMessageReceivedHandler TextMessageReceived;
-        public event ImageReceivedHandler ImageReceived;
+
+        //文件接收
         public event FileTransportRequestedHandler FileTransportRequested;
-        public event FileTransportEventHandler FileReceivedProgressChanged;
+        public event FileTransportEventHandler FileReceiveProgressChanged;
+        public event FileTransportEventHandler FileReceiveCompleted;
+        public event FileTransportErrorEventHandler FileReceiveError;
+
+        //图像接收
+        public event FileTransportEventHandler ImageReceiveProgressChanged;
+        public event FileTransportErrorEventHandler ImageReceiveError;
+        public event ImageReceivedHandler ImageReceived;
+
+        //发送
+        public event SendEventHandler Send;
+
+        //文件发送
         public event FileTransportEventHandler FileSendProgressChanged;
+        public event FileTransportEventHandler FileSendCompleted;
+        public event FileTransportErrorEventHandler FileSendError;
 
         public LanUser()
         {
@@ -103,9 +120,11 @@ namespace Com.LanIM.UI
             {
                 _client.Close();
             }
-            _client = new UdpClientEx(SynchronizationContext.Current);
-            _client.Port = this.Port;
-            _client.SecurityKeys = this.SecurityKeys;
+            _client = new UdpClientEx(SynchronizationContext.Current)
+            {
+                Port = this.Port,
+                SecurityKeys = SecurityKeys
+            };
             _client.SendPacket += this.SendPacketEvent;
             _client.ReceivePacket += this.ReceivePacketEvent;
 
@@ -123,6 +142,8 @@ namespace Com.LanIM.UI
             _fileTransTcpListener = new FileTransportTcpListener(SynchronizationContext.Current);
             _fileTransTcpListener.SecurityKeys = this.SecurityKeys;
             _fileTransTcpListener.ProgressChanged += FileSendProgressChanged;
+            _fileTransTcpListener.Completed += FileSendCompleted;
+            _fileTransTcpListener.Error += FileSendError;
             _fileTransTcpListener.Listen(IP.Address, this.Port);
             return true;
         }
@@ -130,6 +151,9 @@ namespace Com.LanIM.UI
         //发送上线
         public void Login()
         {
+            //先发送一个空操作，以防失败
+            SendEmptyPacket();
+
             UdpPacket packet = new UdpPacket();
             packet.Remote = IP.BroadcastAddress;
             packet.Port = this.Port;
@@ -145,6 +169,19 @@ namespace Com.LanIM.UI
             _client.Send(packet);
         }
 
+        private void SendEmptyPacket()
+        {
+            UdpPacket packet = new UdpPacket();
+            packet.Remote = IP.BroadcastAddress;
+            packet.Port = this.Port;
+            packet.Command = UdpPacket.CMD_NOTHING;
+            packet.MAC = IP.MAC;
+
+            _client.Send(packet);
+
+            Thread.Sleep(200);
+        }
+
         public void Close()
         {
             _client.Close();
@@ -152,6 +189,8 @@ namespace Com.LanIM.UI
 
         public void Exit()
         {
+            SendEmptyPacket();
+
             this.State = LanUserState.Offline;
 
             UdpPacket packet = new UdpPacket();
@@ -206,7 +245,7 @@ namespace Com.LanIM.UI
             if (len > UdpClientEx.UDP_MAX_BUF_SIZE)
             {
                 //图像文件过大的话用文件形式发送
-                SendFile(user, path);
+                SendFile(user, path, true);
             }
             else
             {
@@ -218,20 +257,30 @@ namespace Com.LanIM.UI
 
                 UdpPacketImageExtend extend = new UdpPacketImageExtend();
                 extend.EncryptKey = user.SecurityKeys.Public;
-                extend.Image = (image != null ? image : Image.FromFile(path));
+                extend.Image = image ?? Image.FromFile(path);
                 packet.Extend = extend;
 
                 _client.Send(packet);
+
+                if (image != null)
+                {
+                    //直接发送图像的话，临时图片就删除
+                    LanFile.Delete(path);
+                }
             }
         }
 
-        public void SendFile(LanUser user, string path)
+        public void SendFile(LanUser user, string path, bool bImage = false)
         {
             //发送请求
             UdpPacket packet = new UdpPacket();
             packet.Remote = user.IP.Address;
             packet.Port = user.Port;
             packet.Command = UdpPacket.CMD_SEND_FILE_REQUEST | UdpPacket.CMD_OPTION_NEED_RESPONSE;
+            if(bImage)
+            {
+                packet.Command |= UdpPacket.CMD_OPTION_SEND_FILE_IMAGE;
+            }
             packet.MAC = this.IP.MAC;
 
             UdpPacketSendFileRequestExtend extend = new UdpPacketSendFileRequestExtend();
@@ -250,7 +299,9 @@ namespace Com.LanIM.UI
         public void ReceiveFile(TransportFile file)
         {
             FileTransportTcpClient client = new FileTransportTcpClient(SynchronizationContext.Current);
-            client.ProgressChanged += FileReceivedProgressChanged;
+            client.ProgressChanged += FileReceiveProgressChanged;
+            client.Completed += FileReceiveCompleted;
+            client.Error += FileReceiveError;
             client.Receive(file);
         }
 
@@ -292,8 +343,12 @@ namespace Com.LanIM.UI
                 }
                 #endregion
             }
-
-            if (packet.CMD == UdpPacket.CMD_ENTRY)
+            
+            if (packet.CMD == UdpPacket.CMD_NOTHING)
+            {
+                //do nothing
+            }
+            else if (packet.CMD == UdpPacket.CMD_ENTRY)
             {
                 #region CMD_ENTRY
                 UpdateContacter(packet);
@@ -305,9 +360,11 @@ namespace Com.LanIM.UI
                 packetRsp.MAC = IP.MAC;
                 packetRsp.Command = UdpPacket.CMD_STATE;
 
-                UdpPacketEntryExtend entryExtend = new UdpPacketEntryExtend();
-                entryExtend.PublicKey = _client.SecurityKeys.Public;
-                entryExtend.NickName = this.NickName;
+                UdpPacketEntryExtend entryExtend = new UdpPacketEntryExtend
+                {
+                    PublicKey = _client.SecurityKeys.Public,
+                    NickName = this.NickName
+                };
                 packetRsp.Extend = entryExtend;
 
                 _client.Send(packetRsp);
@@ -371,15 +428,26 @@ namespace Com.LanIM.UI
             else if (packet.CMD == UdpPacket.CMD_SEND_FILE_REQUEST)
             {
                 #region CMD_SEND_FILE_REQUEST
-                if (FileTransportRequested != null)
-                {
-                    LanUser user = this[packet.MAC];
-                    UdpPacketSendFileRequestExtend extend = packet.Extend as UdpPacketSendFileRequestExtend;
+                LanUser user = this[packet.MAC];
+                UdpPacketSendFileRequestExtend extend = packet.Extend as UdpPacketSendFileRequestExtend;
 
-                    TransportFile file = new TransportFile(packet.ID, user.IP.Address, user.Port, user.SecurityKeys.Public, extend.File);
-                    
-                    FileTransportRequestedEventArgs stateArgs = new FileTransportRequestedEventArgs(user, file);
-                    FileTransportRequested(this, stateArgs);
+                TransportFile file = new TransportFile(packet.ID, user.IP.Address, user.Port, user.SecurityKeys.Public, extend.File);
+
+                if ((packet.Command & UdpPacket.CMD_OPTION_SEND_FILE_IMAGE) != 0)
+                {
+                    //接收图像
+                    if (ImageReceived != null)
+                    {
+                        this.ReceiveImage(user, file);
+                    }
+                }
+                else
+                {
+                    if (FileTransportRequested != null)
+                    {
+                        FileTransportRequestedEventArgs stateArgs = new FileTransportRequestedEventArgs(user, file);
+                        FileTransportRequested(this, stateArgs);
+                    }
                 }
                 #endregion
             }
@@ -390,7 +458,24 @@ namespace Com.LanIM.UI
             }
             else
             {
+                throw new Exception("未想定命令");
             }
+        }
+
+        private void ReceiveImage(LanUser user, TransportFile file)
+        {
+            file.SavePath = LanConfig.Instance.GetTempFileName(".png");
+
+            FileTransportTcpClient client = new FileTransportTcpClient(SynchronizationContext.Current);
+            client.ProgressChanged += ImageReceiveProgressChanged;
+            client.Completed += new FileTransportEventHandler((sender, args)=>
+            {
+                Image image = Image.FromFile(file.SavePath);
+                ImageReceivedEventArgs stateArgs = new ImageReceivedEventArgs(user, image);
+                ImageReceived(this, stateArgs);
+            });
+            client.Error += ImageReceiveError;
+            client.Receive(file);
         }
 
         private void UpdateContacter(UdpPacket packet)

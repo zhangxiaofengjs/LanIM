@@ -164,9 +164,8 @@ namespace Com.LanIM.Network
             }
 
             LoggerFactory.Debug("get file");
-            TransportFile file = null;
             TcpPacketRequestFileTransportExtend extend = packet.Extend as TcpPacketRequestFileTransportExtend;
-            if (!_transportFileDic.TryRemove(extend.FileID, out file))
+            if (!_transportFileDic.TryRemove(extend.FileID, out TransportFile file))
             {
                 ns.Close();
                 client.Close();
@@ -252,10 +251,7 @@ namespace Com.LanIM.Network
 
         private void ProgressChangedSendOrPostCallBack(object state)
         {
-            if (ProgressChanged != null)
-            {
-                ProgressChanged(this, state as FileTransportEventArgs);
-            }
+            ProgressChanged?.Invoke(this, state as FileTransportEventArgs);
         }
 
         protected virtual void OnCompleted(TransportFile file)
@@ -275,10 +271,7 @@ namespace Com.LanIM.Network
 
         private void CompletedSendOrPostCallBack(object state)
         {
-            if (Completed != null)
-            {
-                Completed(this, state as FileTransportEventArgs);
-            }
+            Completed?.Invoke(this, state as FileTransportEventArgs);
         }
 
         protected virtual void OnError(Errors error, string message, TransportFile file, Exception e)
@@ -298,10 +291,7 @@ namespace Com.LanIM.Network
 
         private void ErrorSendOrPostCallBack(object state)
         {
-            if (Error != null)
-            {
-                Error(this, state as FileTransportErrorEventArgs);
-            }
+            Error?.Invoke(this, state as FileTransportErrorEventArgs);
         }
 
         public void AddTransportFile(TransportFile file)

@@ -10,33 +10,22 @@ namespace Com.LanIM.Network
 {
     public class UdpClientEventArgs
     {
-        private UdpPacket _packet;
-        public UdpPacket Packet
-        {
-            get { return _packet; }
-        }
+        public UdpPacket Packet { get; } = null;
 
         public UdpClientEventArgs(UdpPacket packet)
         {
-            _packet = packet;
+            Packet = packet;
         }
     }
 
     public class UdpClientSendEventArgs  : UdpClientEventArgs
     {
-        private bool _success = false;
-        public bool Success
-        {
-            get
-            {
-                return this._success;
-            }
-        }
+        public bool Success { get; } = false;
 
         public UdpClientSendEventArgs(UdpPacket packet, bool success)
        : base(packet)
         {
-            this._success = success;
+            this.Success = success;
         }
     }
 
@@ -64,29 +53,23 @@ namespace Com.LanIM.Network
 
     public class FileTransportEventArgs
     {
-        private TransportFile _file = null;
-        public TransportFile File
-        {
-            get { return _file; }
-        }
+        public TransportFile File { get; } = null;
 
         public FileTransportEventArgs(TransportFile file)
         {
-            _file = file;
+            File = file;
         }
     }
 
     public class FileTransportErrorEventArgs: FileTransportEventArgs
     {
-        private Errors _error = Errors.None;
-
-        public Errors Error { get => _error; }
+        public Errors Error { get; } = Errors.None;
         public string Message { get; private set; }
         public Exception Exception { get; private set; }
         public FileTransportErrorEventArgs(Errors error, string message, TransportFile file, Exception e)
             : base(file)
         {
-            _error = error;
+            Error = error;
             Message = message;
             Exception = e;
         }

@@ -10,7 +10,7 @@ namespace Com.LanIM.UI
 {
     class LanConfig
     {
-        private static LanConfig _instance = new LanConfig();
+        private static readonly LanConfig _instance = new LanConfig();
         public static LanConfig Instance
         {
             get
@@ -19,7 +19,7 @@ namespace Com.LanIM.UI
             }
         }
 
-        private string _tempPath;
+        private readonly string _tempPath;
         public string TempPath
         {
             get

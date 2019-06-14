@@ -13,7 +13,7 @@ namespace Com.LanIM.Network.Packets
     {
         //命令
         public const ulong CMD_MASK = 0x000000FF;  //命令MASK
-        public const ulong CMD_NONE = 0x00000000; //无操作命令
+        public const ulong CMD_NOTHING = 0x00000000; //无操作命令
         public const ulong CMD_ENTRY = 0x00000001; //上线
         public const ulong CMD_EXIT = 0x00000002; //下线
         public const ulong CMD_STATE = 0x00000003; //用户各种信息状态
@@ -23,7 +23,8 @@ namespace Com.LanIM.Network.Packets
         public const ulong CMD_RESPONSE = 0x00000007; //收到各种消息回应
 
         public const ulong CMD_OPTION_NEED_RESPONSE = 0x00000100; //是否需要回应消息
-
+        public const ulong CMD_OPTION_SEND_FILE_IMAGE = 0x00000200; //是否发送的图像
+        
         public override short Type
         {
             get

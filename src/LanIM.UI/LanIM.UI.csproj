@@ -46,12 +46,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="client.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="client.Designer.cs">
-      <DependentUpon>client.cs</DependentUpon>
-    </Compile>
     <Compile Include="FormTest.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -65,9 +59,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="EventArgs.cs" />
     <Compile Include="EventHandlers.cs" />
-    <EmbeddedResource Include="client.resx">
-      <DependentUpon>client.cs</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="FormTest.resx">
       <DependentUpon>FormTest.cs</DependentUpon>
     </EmbeddedResource>

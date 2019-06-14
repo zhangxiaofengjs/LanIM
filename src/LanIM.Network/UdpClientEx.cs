@@ -78,8 +78,10 @@ namespace Com.LanIM.Network
                 LoggerFactory.Debug("listen prepare");
 
                 IPEndPoint localIpEp = new IPEndPoint(IPAddress.Any, Port);
-                _client = new UdpClient(localIpEp);
-                _client.EnableBroadcast = true;
+                _client = new UdpClient(localIpEp)
+                {
+                    EnableBroadcast = true
+                };
                 _client.AllowNatTraversal(true);
                 _client.Client.ReceiveBufferSize = this.ReceiveBufferSize;
 
@@ -178,10 +180,7 @@ namespace Com.LanIM.Network
 
         private void ReceivePacketdSendOrPostCallBack(object state)
         {
-            if (ReceivePacket != null)
-            {
-                ReceivePacket(this, state as UdpClientReceiveEventArgs);
-            }
+            ReceivePacket?.Invoke(this, state as UdpClientReceiveEventArgs);
         }
         #endregion
 
@@ -272,8 +271,7 @@ namespace Com.LanIM.Network
             if (_sendingPacketDic.ContainsKey(packet.ID))
             {
                 // 超时仍在队列中
-                UdpPacket pkt = null;
-                _sendingPacketDic.TryRemove(packet.ID, out pkt);
+                _sendingPacketDic.TryRemove(packet.ID, out UdpPacket pkt);
 
                 OnSendPackage(packet, false);
             }
@@ -296,17 +294,13 @@ namespace Com.LanIM.Network
         private void SendPacketSendOrPostCallBack(object state)
         {
             LoggerFactory.Debug("send packet event");
-            if (SendPacket != null)
-            {
-                SendPacket(this, state as UdpClientSendEventArgs);
-            }
+            SendPacket?.Invoke(this, state as UdpClientSendEventArgs);
         }
 
         public void NotifySendPacketSuccess(long id)
         {
             LoggerFactory.Debug("send packet success:id={0}", id);
-            UdpPacket pkt = null;
-            if (_sendingPacketDic.TryRemove(id, out pkt))
+            if (_sendingPacketDic.TryRemove(id, out UdpPacket pkt))
             {
                 OnSendPackage(pkt, true);
             }

@@ -26,10 +26,7 @@ namespace Com.LanIM.Network
             //只运行一次
             this.Stop();
 
-            if (_callback != null)
-            {
-                _callback(state);
-            }
+            _callback?.Invoke(state);
         }
 
         public void Stop()
