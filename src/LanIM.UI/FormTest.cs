@@ -3,6 +3,7 @@ using Com.LanIM.Common.Security;
 using Com.LanIM.Network;
 using Com.LanIM.Network.Packets;
 using Com.LanIM.UI;
+using Com.LanIM.UI.Components;
 using LanIM.Common;
 using System;
 using System.Collections.Generic;
@@ -228,6 +229,14 @@ namespace TeamIM
         private void buttonLogFlush_Click(object sender, EventArgs e)
         {
             LoggerFactory.Flush();
+        }
+
+        private void FormIPMsgTest_Load(object sender, EventArgs e)
+        {
+            for (int i = 0; i < 10; i++)
+            {
+                scrollableUserControl1.Items.Add(new ScrollableListItem());
+            }
         }
     }
 }

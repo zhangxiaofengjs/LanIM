@@ -51,6 +51,7 @@
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
             this.textBoxNN = new System.Windows.Forms.TextBox();
             this.buttonLogFlush = new System.Windows.Forms.Button();
+            this.scrollableUserControl1 = new Com.LanIM.UI.Components.ScrollableList();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.groupBox3.SuspendLayout();
@@ -122,7 +123,7 @@
             this.richTextBox1.Name = "richTextBox1";
             this.richTextBox1.ScrollBars = System.Windows.Forms.RichTextBoxScrollBars.ForcedBoth;
             this.richTextBox1.ShowSelectionMargin = true;
-            this.richTextBox1.Size = new System.Drawing.Size(586, 572);
+            this.richTextBox1.Size = new System.Drawing.Size(466, 572);
             this.richTextBox1.TabIndex = 1;
             this.richTextBox1.Text = "";
             // 
@@ -309,16 +310,30 @@
             this.buttonLogFlush.UseVisualStyleBackColor = true;
             this.buttonLogFlush.Click += new System.EventHandler(this.buttonLogFlush_Click);
             // 
+            // scrollableUserControl1
+            // 
+            this.scrollableUserControl1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.scrollableUserControl1.BackColor = System.Drawing.Color.LavenderBlush;
+            this.scrollableUserControl1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.scrollableUserControl1.Location = new System.Drawing.Point(686, 12);
+            this.scrollableUserControl1.Name = "scrollableUserControl1";
+            this.scrollableUserControl1.Size = new System.Drawing.Size(285, 346);
+            this.scrollableUserControl1.TabIndex = 5;
+            // 
             // FormIPMsgTest
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(800, 590);
+            this.ClientSize = new System.Drawing.Size(998, 590);
+            this.Controls.Add(this.scrollableUserControl1);
             this.Controls.Add(this.groupBox3);
             this.Controls.Add(this.richTextBox1);
             this.Controls.Add(this.button2);
             this.Name = "FormIPMsgTest";
             this.Text = "FormIPMsgTest";
+            this.Load += new System.EventHandler(this.FormIPMsgTest_Load);
             this.groupBox1.ResumeLayout(false);
             this.groupBox2.ResumeLayout(false);
             this.groupBox3.ResumeLayout(false);
@@ -354,5 +369,6 @@
         private System.Windows.Forms.RadioButton radioButton1;
         private System.Windows.Forms.Button buttonSendFile;
         private System.Windows.Forms.Button buttonLogFlush;
+        private Com.LanIM.UI.Components.ScrollableList scrollableUserControl1;
     }
 }
