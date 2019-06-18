@@ -317,7 +317,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.scrollableUserControl1.BackColor = System.Drawing.Color.LavenderBlush;
             this.scrollableUserControl1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.scrollableUserControl1.Location = new System.Drawing.Point(686, 12);
+            this.scrollableUserControl1.Location = new System.Drawing.Point(686, 57);
             this.scrollableUserControl1.Name = "scrollableUserControl1";
             this.scrollableUserControl1.Size = new System.Drawing.Size(285, 346);
             this.scrollableUserControl1.TabIndex = 5;

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
@@ -12,34 +13,43 @@ namespace Com.LanIM.UI.Components
 {
     class ScrollableList : UserControl
     {
+        class ItemInfo
+        {
+            public int Index = -1;
+            public Rectangle Bounds = Rectangle.Empty;
+            public ScrollableListItem Item = null;
+        }
+
         private const int SCROLLBAR_WIDTH = 8;
         private const int MIN_SCROLLBAR_HEIGHT = (int)(SCROLLBAR_WIDTH * 1.5);
         private const int DEFAULT_MOUSE_WHEEL_OFFSET = 10;
-        
+
         private static readonly Brush SCROLLBAR_HANDLE_BRUSH_NORMAL = new SolidBrush(Color.FromArgb(200, 210, 210, 210));
         private static readonly Brush SCROLLBAR_HANDLE_BRUSH_FOCUSED = new SolidBrush(Color.FromArgb(200, 186, 186, 186));
 
         private Rectangle _scrollBarHandleBounds = Rectangle.Empty;//滑块位置大小
-        private Rectangle _scrollBarBounds = Rectangle.Empty;//滚动条区域
         private Brush _scrollBarHandleBrush = SCROLLBAR_HANDLE_BRUSH_NORMAL;//滑块绘制笔刷
-        private int _scrollBarOffset = 0;//滑块的偏移量
-        private int ScrollBarOffset
+
+        private int _offset = 0;
+        private int Offset
         {
             get
             {
-                return _scrollBarOffset;
+                return this._offset;
             }
             set
             {
-                //更新偏移量，注意最上端和最下端
-                this._scrollBarOffset = Math.Min(Math.Max(0, value), this.ClientSize.Height - this._scrollBarHandleHeight - 1);
-                //更新滑块的位置
-                this._scrollBarHandleBounds = new Rectangle(this.ClientSize.Width - SCROLLBAR_WIDTH - 1,
-                    ScrollBarOffset, SCROLLBAR_WIDTH, this._scrollBarHandleHeight);
+                //移动到第一个项目
+                this._offset = Math.Min(value, 0);
+                //移动到最后一个项目，最多this.ClientSize.Height - this._totleItemHeight
+                this._offset = Math.Max(this._offset, this.ClientSize.Height - this._totleItemHeight);
+
+                //计算滑块位置
+                int handleOffset = -(int)(1.0 * this._offset * (this.ClientSize.Height - this._scrollBarHandleBounds.Height) / (this._totleItemHeight - this.ClientSize.Height));
+                this._scrollBarHandleBounds.Y = handleOffset;
             }
         }
 
-        private int _scrollBarHandleHeight = MIN_SCROLLBAR_HEIGHT;
         private int _totleItemHeight = 0;
 
         private bool _mouseEnter = false;
@@ -47,9 +57,34 @@ namespace Com.LanIM.UI.Components
         private int _scrollBarHandleDragMouseOffsetY = -1;
 
         public ScrollableListItemCollection Items { get; set; }
+        private SortedList<int, ScrollableListItem> _selectedIndexes = new SortedList<int, ScrollableListItem>();
+        public ScrollableListItemCollection _selectedItems;
+        public ScrollableListItemCollection SelectedItems
+        {
+            get
+            {
+                _selectedItems.Clear();
+                _selectedItems.AddRange(_selectedIndexes.Values);
+                return _selectedItems;
+            }
+        }
+        public ScrollableListItem SelectedItem
+        {
+            get
+            {
+                if(_selectedItems.Count != 0)
+                {
+                    return _selectedItems[0];
+                }
+                return null;
+            }
+        }
 
+        [DefaultValue(true)]
+        public bool MultipleSelect { get; set; }
         public event MeasureItemEventHandler MeasureItem;
-
+        public event ItemClickedEventHandler ItemClicked;
+        
         public ScrollableList()
         {
             this.SetStyle(ControlStyles.UserPaint, true);
@@ -58,6 +93,10 @@ namespace Com.LanIM.UI.Components
             this.SetStyle(ControlStyles.ResizeRedraw, true);
 
             this.Items = new ScrollableListItemCollection(this);
+            this._selectedItems = new ScrollableListItemCollection(this);
+            this._scrollBarHandleBounds = new Rectangle(this.ClientSize.Width - SCROLLBAR_WIDTH - 1,
+                    0, SCROLLBAR_WIDTH, MIN_SCROLLBAR_HEIGHT);
+            this.Offset = 0;
         }
 
         protected override void OnPaint(PaintEventArgs e)
@@ -74,8 +113,8 @@ namespace Com.LanIM.UI.Components
             //鼠标在内部 || 在拖拽中
             //当前绘制区域和滚动条相交
             if (_totleItemHeight > this.ClientSize.Height &&
-                clipRect.IntersectsWith(this._scrollBarBounds) &&
-                (this._mouseEnter || this._scrollBarHandleDrag ))
+                clipRect.IntersectsWith(this._scrollBarHandleBounds) &&
+                (this._mouseEnter || this._scrollBarHandleDrag))
             {
                 g.SmoothingMode = SmoothingMode.HighQuality;
                 //上下半圆，中间矩形填充
@@ -84,7 +123,7 @@ namespace Com.LanIM.UI.Components
                 {
                     gp.AddPie(bounds.X, bounds.Y, bounds.Width, bounds.Width, 180, 180);
                     gp.AddRectangle(new Rectangle(bounds.X, bounds.Y + bounds.Width / 2, bounds.Width, bounds.Height - bounds.Width));
-                    gp.AddPie(bounds.X, bounds.Y + _scrollBarHandleHeight - bounds.Width, bounds.Width, bounds.Width, 0, 180);
+                    gp.AddPie(bounds.X, bounds.Y + bounds.Height - bounds.Width, bounds.Width, bounds.Width, 0, 180);
                     gp.CloseAllFigures();
                     g.FillPath(this._scrollBarHandleBrush, gp);
                 }
@@ -94,21 +133,35 @@ namespace Com.LanIM.UI.Components
         protected virtual void OnDrawItems(Graphics g, Rectangle clipRect)
         {
             Rectangle rect = new Rectangle(0, 0, this.ClientSize.Width, this.ClientSize.Height);
+            int height = 0;
             for (int i = 0; i < this.Items.Count; i++)
             {
                 ScrollableListItem item = this.Items[i];
-                //rect.Top = i * item;
+
+                rect.Height = item.Height;
+
+                //计算Y，当前项目累计的高度+滑块相对偏移量
+                rect.Y = height + _offset;
 
                 if (rect.IntersectsWith(clipRect))
                 {
-                    OnDrawItem(item, g, rect);
+                    bool isFocus = rect.Contains(PointToClient(MousePosition));
+                    DrawItemEventArgs args = new DrawItemEventArgs(i, item, g, rect, isFocus, _selectedIndexes.ContainsKey(i),
+                        this.Font, this.ForeColor, this.BackColor);
+                    OnDrawItem(args);
                 }
+
+                height += item.Height;
             }
         }
 
-        protected virtual void OnDrawItem(ScrollableListItem item, Graphics g, Rectangle itemBounds)
+        protected virtual void OnDrawItem(DrawItemEventArgs args)
         {
-            g.FillRectangle(Brushes.Blue, itemBounds);
+            args.DrawBackground();
+
+            TextRenderer.DrawText(args.Graphics, args.Index + ":" + args.Item.ToString(), this.Font,
+                args.Bounds, this.ForeColor,
+                TextFormatFlags.EndEllipsis | TextFormatFlags.Left | TextFormatFlags.VerticalCenter);
         }
 
         protected override void OnMouseEnter(EventArgs e)
@@ -117,11 +170,8 @@ namespace Com.LanIM.UI.Components
 
             //滚动条区域重绘
             this._mouseEnter = true;
-            this.ScrollBarOffset = this.ScrollBarOffset;//为了更新滚动条bar的大小
-            this._scrollBarBounds = new Rectangle(this._scrollBarHandleBounds.X, 0, 
-                this.ClientSize.Width - this._scrollBarHandleBounds.X + 1, this.ClientSize.Height);
-
-            this.Invalidate(this._scrollBarBounds);
+            this.Offset = this.Offset;
+            this.Invalidate();
         }
 
         protected override void OnMouseLeave(EventArgs e)
@@ -130,7 +180,8 @@ namespace Com.LanIM.UI.Components
 
             //滚动条区域重绘
             this._mouseEnter = false;
-            this.Invalidate(this._scrollBarBounds);
+
+            this.Invalidate();
         }
 
         protected override void OnMouseDown(MouseEventArgs e)
@@ -155,7 +206,7 @@ namespace Com.LanIM.UI.Components
             if (e.Button == MouseButtons.Left)
             {
                 //鼠标释放结束拖动
-                    this._scrollBarHandleDrag = false;
+                this._scrollBarHandleDrag = false;
                 this._scrollBarHandleDragMouseOffsetY = -1;
             }
         }
@@ -167,8 +218,9 @@ namespace Com.LanIM.UI.Components
             if (this._scrollBarHandleDrag)
             {
                 //鼠标按下时拖动，更新滑块偏移
-                this.ScrollBarOffset += e.Y - this._scrollBarHandleDragMouseOffsetY;
+                this.Offset -= (int)(1.0 * (e.Y - this._scrollBarHandleDragMouseOffsetY) * this._totleItemHeight / this.ClientSize.Height);
                 this._scrollBarHandleDragMouseOffsetY = e.Y;
+                this.Invalidate();
             }
             else
             {
@@ -185,23 +237,90 @@ namespace Com.LanIM.UI.Components
                 {
                     this._scrollBarHandleBrush = SCROLLBAR_HANDLE_BRUSH_NORMAL;
                 }
+                this.Invalidate();
             }
-
-            this.Invalidate(this._scrollBarBounds);
         }
         protected override void OnMouseWheel(MouseEventArgs e)
         {
             base.OnMouseWheel(e);
+
+            //鼠标滚轮重新设定滑块位置,默认滚动1/3的项目高度
             if (e.Delta > 0)
             {
-                this.ScrollBarOffset -= DEFAULT_MOUSE_WHEEL_OFFSET;
+                this.Offset += DEFAULT_MOUSE_WHEEL_OFFSET;
             }
             else
             {
-                this.ScrollBarOffset += DEFAULT_MOUSE_WHEEL_OFFSET;
+                this.Offset -= DEFAULT_MOUSE_WHEEL_OFFSET;
             }
-            this.Invalidate(this._scrollBarBounds);
+
+            this.Invalidate();
         }
+
+        protected override void OnMouseClick(MouseEventArgs e)
+        {
+            base.OnMouseClick(e);
+            ItemInfo itemInfo = HitTest(e.Location);
+            if(itemInfo == null)
+            {
+                return;
+            }
+
+            //设置选择状态
+            if (this._selectedIndexes.ContainsKey(itemInfo.Index))
+            {
+                this._selectedIndexes.Remove(itemInfo.Index);
+            }
+            else
+            {
+                if (!this.MultipleSelect)
+                {
+                    //只能单选时
+                    this._selectedIndexes.Clear();
+                }
+                this._selectedIndexes.Add(itemInfo.Index, itemInfo.Item);
+            }
+
+            //触发选择事件
+            ItemClickedEventArgs args = new ItemClickedEventArgs(itemInfo.Item);
+            OnItemClicked(args);
+
+            //描绘选择状态
+            this.Invalidate(itemInfo.Bounds);
+        }
+
+        private ItemInfo HitTest(Point mousePosition)
+        {
+            Rectangle rect = new Rectangle(0, 0, this.ClientSize.Width, this.ClientSize.Height);
+            int height = 0;
+            for (int i = 0; i < this.Items.Count; i++)
+            {
+                ScrollableListItem item = this.Items[i];
+
+                rect.Height = item.Height;
+
+                //计算Y，当前项目累计的高度+滑块相对偏移量
+                rect.Y = height + this.Offset;
+
+                if (rect.Contains(mousePosition))
+                {
+                    ItemInfo ii = new ItemInfo();
+                    ii.Index = i;
+                    ii.Item = item;
+                    ii.Bounds = rect;
+                    return ii;
+                }
+                height += item.Height;
+            }
+
+            return null;
+        }
+
+        protected virtual void OnItemClicked(ItemClickedEventArgs args)
+        {
+            ItemClicked?.Invoke(this, args);
+        }
+
         //计算所有Item的大小
         public void MeasureItems()
         {
@@ -219,7 +338,8 @@ namespace Com.LanIM.UI.Components
             }
 
             //滑块高度
-            this._scrollBarHandleHeight = Math.Max((int)(this.ClientSize.Height * this.ClientSize.Height * 1.0 / _totleItemHeight), MIN_SCROLLBAR_HEIGHT);
+            this._scrollBarHandleBounds.X = this.ClientSize.Width - SCROLLBAR_WIDTH - 1;
+            this._scrollBarHandleBounds.Height = Math.Max((int)(this.ClientSize.Height * this.ClientSize.Height * 1.0 / _totleItemHeight), MIN_SCROLLBAR_HEIGHT);
         }
 
         protected virtual void OnMeasureItem(MeasureItemEventArgs args)
@@ -230,8 +350,11 @@ namespace Com.LanIM.UI.Components
         protected override void OnSizeChanged(EventArgs e)
         {
             base.OnSizeChanged(e);
-            //尺寸发生变化，重新计算所有
+
+            //计算项目区域
             this.MeasureItems();
+
+            //绘制所有
             this.Invalidate();
         }
     }

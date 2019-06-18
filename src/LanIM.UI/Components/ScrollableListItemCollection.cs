@@ -52,5 +52,10 @@ namespace Com.LanIM.UI.Components
             this._list.AddRange(collection);
             this._owner.MeasureItems();
         }
+
+        internal void Clear()
+        {
+            this._list.Clear();
+        }
     }
 }

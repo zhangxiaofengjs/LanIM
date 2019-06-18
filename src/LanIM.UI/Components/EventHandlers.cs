@@ -7,4 +7,5 @@ using System.Threading.Tasks;
 namespace Com.LanIM.UI.Components
 {
     delegate void MeasureItemEventHandler(object sender, MeasureItemEventArgs args);
+    delegate void ItemClickedEventHandler(object sender, ItemClickedEventArgs args);
 }
