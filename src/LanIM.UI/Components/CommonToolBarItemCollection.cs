@@ -7,10 +7,10 @@ using System.Threading.Tasks;
 
 namespace Com.LanIM.UI.Components
 {
-    internal class ScrollableListItemCollection
+    internal class CommonToolBarItemCollection
     {
-        private ScrollableList _owner;
-        private List<ScrollableListItem> _list = new List<ScrollableListItem>();
+        private CommonToolBar _owner;
+        private List<CommonToolBarItem> _list = new List<CommonToolBarItem>();
 
         public int Count
         {
@@ -20,7 +20,7 @@ namespace Com.LanIM.UI.Components
             }
         }
 
-        public ScrollableListItem this[int index]
+        public CommonToolBarItem this[int index]
         {
             get
             {
@@ -28,53 +28,46 @@ namespace Com.LanIM.UI.Components
             }
         }
 
-        public ScrollableListItemCollection(ScrollableList owner)
+        public CommonToolBarItemCollection(CommonToolBar owner)
         {
             this._owner = owner;
         }
 
         public IEnumerator GetEnumerator()
         {
-            foreach (ScrollableListItem item in _list)
+            foreach (CommonToolBarItem item in _list)
             {
                 yield return item;
             }
         }
 
-        public void Add(ScrollableListItem item)
+        public void Add(CommonToolBarItem item)
         {
             this._list.Add(item);
-            this._owner.MeasureItemOnAdd(item);
+            this._owner.MeasureItems();
         }
 
-        public void AddRange(IEnumerable<ScrollableListItem> collection)
+        public void AddRange(IEnumerable<CommonToolBarItem> collection)
         {
             this._list.AddRange(collection);
-            this._owner.MeasureItemOnAdd(collection);
+            this._owner.MeasureItems();
         }
 
-        public void Remove(ScrollableListItem item)
+        public void Remove(CommonToolBarItem item)
         {
             this._list.Remove(item);
-            this._owner.MeasureItemOnRemove(item);
+            this._owner.MeasureItems();
         }
 
         public void RemoveAt(int index)
         {
-            ScrollableListItem item = this._list[index];
             this._list.RemoveAt(index);
-            this._owner.MeasureItemOnRemove(item);
+            this._owner.MeasureItems();
         }
 
         public void Clear()
         {
             this._list.Clear();
-            this._owner.MeasureItems();
-        }
-
-        public int IndexOf(ScrollableListItem item)
-        {
-            return this._list.IndexOf(item);
         }
     }
 }

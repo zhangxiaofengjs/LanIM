@@ -61,8 +61,10 @@ namespace Com.LanIM.UI
         }
         public IPv4Address IP { get; set; }
         public string NickName { get; set; }
+        public Image Image { get; set; }
         public int Port { get; set; }
         public LanUserState State { get; set; }
+        public string ID { get { return IP.MAC; } }
 
         //用户上下线等状态变化
         public event UserStateEventHandler UserEntry;

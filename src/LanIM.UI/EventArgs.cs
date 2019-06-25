@@ -13,7 +13,7 @@ namespace Com.LanIM.UI
 {
     class LanIMUserEventArgs
     {
-        private LanUser _user;
+        private readonly LanUser _user;
         public LanUser User
         {
             get { return _user; }
@@ -27,7 +27,7 @@ namespace Com.LanIM.UI
 
     class LanIMPacketEventArgs
     {
-        private UdpPacket _packet;
+        private readonly UdpPacket _packet;
         public UdpPacket Packet
         {
             get { return _packet; }
@@ -41,7 +41,7 @@ namespace Com.LanIM.UI
 
     class SendEventArgs  : LanIMPacketEventArgs
     {
-        private bool _success = false;
+        private readonly bool _success = false;
         public bool Success
         {
             get
@@ -67,7 +67,7 @@ namespace Com.LanIM.UI
 
     class TextMessageReceivedEventArgs : LanIMUserEventArgs
     {
-        private String _meassage;
+        private readonly String _meassage;
 
         public string Message
         {
@@ -84,7 +84,7 @@ namespace Com.LanIM.UI
 
     class ImageReceivedEventArgs : LanIMUserEventArgs
     {
-        private Image _image;
+        private readonly Image _image;
 
         public Image Image
         {
@@ -100,7 +100,7 @@ namespace Com.LanIM.UI
 
     class FileTransportRequestedEventArgs : LanIMUserEventArgs
     {
-        private TransportFile _file;
+        private readonly TransportFile _file;
 
         public TransportFile File
         {

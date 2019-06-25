@@ -37,5 +37,10 @@ namespace Com.LanIM.Network
                 Mask,
                 MAC);
         }
+
+        public static string GetHostName()
+        {
+            return Dns.GetHostName();
+        }
     }
 }

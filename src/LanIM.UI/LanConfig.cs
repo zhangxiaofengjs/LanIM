@@ -24,12 +24,26 @@ namespace Com.LanIM.UI
         {
             get
             {
-                if (!Directory.Exists(_tempPath))
-                {
-                    Directory.CreateDirectory(_tempPath);
-                }
-                return _tempPath;
+                return MakeSureFolderExist(_tempPath);
             }
+        }
+
+        private readonly string _receivedFilePath;
+        public string ReceivedFilePath
+        {
+            get
+            {
+                return MakeSureFolderExist(_receivedFilePath);
+            }
+        }
+
+        private string MakeSureFolderExist(string path)
+        {
+            if (!Directory.Exists(path))
+            {
+                Directory.CreateDirectory(path);
+            }
+            return path;
         }
 
         public string AppDataDir
@@ -38,18 +52,24 @@ namespace Com.LanIM.UI
             {
                 string dataDir = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
                 dataDir = Path.Combine(dataDir, "lanmi");
-                if(!Directory.Exists(dataDir))
-                {
-                    Directory.CreateDirectory(dataDir);
-                }
-                return dataDir;
+                return MakeSureFolderExist(dataDir);
+            }
+        }
+
+        public string NickName
+        {
+            get
+            {
+                return "小兔子 " + DateTime.Now.ToString();
             }
         }
 
         public LanConfig()
         {
             _tempPath = Path.Combine(AppDataDir, "temp");
+            _receivedFilePath = Path.Combine(AppDataDir, "files");
         }
+        
 
         public string GetTempFileName(string extension)
         {

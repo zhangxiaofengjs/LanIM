@@ -1,3 +1,4 @@
+.svn
 src/.vs
 src/LanIM.Network/obj
 src/LanIM.Network/bin
@@ -6,4 +7,6 @@ src/LanIM.UI/obj
 src/LanIM.UI/bin
 src/LanIM.Common/obj
 src/LanIM.Common/bin
+src/LanIM.Store/obj
+src/LanIM.Store/bin
 src/ipmsg/ipmsg

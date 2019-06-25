@@ -24,13 +24,16 @@ using System.Windows.Forms;
 
 namespace TeamIM
 {
-    public partial class FormIPMsgTest : Form
+    partial class FormIPMsgTest : CommonForm
     {
         LanUser _user = null;
 
         public FormIPMsgTest()
         {
             InitializeComponent();
+
+            pictureBox2.Image = Image.FromFile("min.png");
+            pictureBox1.Image = Image.FromFile("max.jpg");
         }
 
         private void button1_Click(object sender, System.EventArgs e)

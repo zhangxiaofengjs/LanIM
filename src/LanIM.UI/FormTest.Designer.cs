@@ -274,7 +274,6 @@
             // 
             // pictureBox2
             // 
-            this.pictureBox2.Image = global::Com.LanIM.UI.Properties.Resources.bootstrap;
             this.pictureBox2.Location = new System.Drawing.Point(93, 124);
             this.pictureBox2.Name = "pictureBox2";
             this.pictureBox2.Size = new System.Drawing.Size(69, 50);
@@ -284,7 +283,6 @@
             // 
             // pictureBox1
             // 
-            this.pictureBox1.Image = global::Com.LanIM.UI.Properties.Resources.Lighthouse;
             this.pictureBox1.Location = new System.Drawing.Point(18, 124);
             this.pictureBox1.Name = "pictureBox1";
             this.pictureBox1.Size = new System.Drawing.Size(69, 50);
@@ -316,8 +314,8 @@
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.scrollableUserControl1.BackColor = System.Drawing.Color.LavenderBlush;
-            this.scrollableUserControl1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.scrollableUserControl1.Location = new System.Drawing.Point(686, 57);
+            this.scrollableUserControl1.MultipleSelect = false;
             this.scrollableUserControl1.Name = "scrollableUserControl1";
             this.scrollableUserControl1.Size = new System.Drawing.Size(285, 346);
             this.scrollableUserControl1.TabIndex = 5;
