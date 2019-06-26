@@ -27,7 +27,6 @@ namespace Com.LanIM.Store
 
         public SQLiteConnection Conn { get => _conn; set => _conn = value; }
 
-
         public LanIMStore()
         {
         }
@@ -84,12 +83,18 @@ namespace Com.LanIM.Store
             return dt;
         }
 
-        internal void ExecuteNoQuery(string sql)
+        internal void ExecuteNoQuery(string sql, SQLiteParameter[] parameters = null)
         {
             SQLiteCommand cmd = _conn.CreateCommand();
             cmd.CommandText = sql;
             cmd.Connection = _conn;
             cmd.CommandType = CommandType.Text;
+
+            if (parameters != null)
+            {
+                cmd.Parameters.AddRange(parameters);
+            }
+
             cmd.ExecuteNonQuery();
         }
     }

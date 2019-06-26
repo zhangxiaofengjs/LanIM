@@ -412,7 +412,7 @@ namespace Com.LanIM.UI.Components
                 for (int i = 0; i < this.Items.Count; i++)
                 {
                     ScrollableListItem item = this.Items[i];
-                    OnMeasureItem(new MeasureItemEventArgs(i, item, g));
+                    OnMeasureItem(new MeasureItemEventArgs(i, item, g, this.Font));
 
                     totleItemHeight += item.Height;
                 }
@@ -436,7 +436,7 @@ namespace Com.LanIM.UI.Components
             {
                 foreach (var item in collection)
                 {
-                    OnMeasureItem(new MeasureItemEventArgs(this.Items.IndexOf(item), item, g));
+                    OnMeasureItem(new MeasureItemEventArgs(this.Items.IndexOf(item), item, g, this.Font));
 
                     totleItemHeight += item.Height;
                 }
@@ -449,7 +449,7 @@ namespace Com.LanIM.UI.Components
         {
             using (Graphics g = this.CreateGraphics())
             {
-                OnMeasureItem(new MeasureItemEventArgs(this.Items.IndexOf(item), item, g));
+                OnMeasureItem(new MeasureItemEventArgs(this.Items.IndexOf(item), item, g, this.Font));
                 this.TotleItemHeight -= item.Height;
             }
         }

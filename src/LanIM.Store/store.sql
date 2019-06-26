@@ -1,0 +1,16 @@
+﻿CREATE TABLE MSG_HISTORY_TBL (
+    C_ID      INTEGER       PRIMARY KEY AUTOINCREMENT
+                            NOT NULL,
+    C_TYPE    INT           NOT NULL,
+    C_TIME    DATETIME      NOT NULL,
+    C_USER_ID CHAR (12)     NOT NULL,
+    C_CONTENT VARCHAR (512) 
+);
+
+CREATE TABLE CONTACTER_TBL (
+    C_ID        INTEGER   PRIMARY KEY AUTOINCREMENT
+                          NOT NULL,
+    C_NICK_NAME CHAR (20) NOT NULL,
+    C_MAC       CHAR (12) NOT NULL,
+    C_IP        CHAR (15) 
+);

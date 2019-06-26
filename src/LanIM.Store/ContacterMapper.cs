@@ -14,7 +14,7 @@ namespace Com.LanIM.Store
         {
             DataTable dt = LanIMStore.Instance.Query(Sql.QUERY_CONTACTERS);
 
-            DataTable2ModelConvert<Contacter> convert = new DataTable2ModelConvert<Contacter>();
+            ModelConvert<Contacter> convert = new ModelConvert<Contacter>();
 
             List<Contacter> cs = convert.Convert(dt,
                 new ColumnMapping("C_ID", "ID"),

@@ -17,12 +17,14 @@ namespace Com.LanIM.UI.Components
         public Graphics Graphics { get; }
         public ScrollableListItem Item { get; }
         public int Index { get; }
+        public Font Font { get; set; }
 
-        public MeasureItemEventArgs(int index, ScrollableListItem item, Graphics g)
+        public MeasureItemEventArgs(int index, ScrollableListItem item, Graphics g, Font font)
         {
             this.Index = index;
             this.Item = item;
-            this.Graphics = g; 
+            this.Graphics = g;
+            this.Font = font;
         }
     }
 
@@ -51,8 +53,8 @@ namespace Com.LanIM.UI.Components
             this.Font = font;
             this.ForeColor = foreColor;
             this.BackColor = backColor;
-            this.SelectedBackColor = LanColor.DarkLight(backColor, -0.3f);
-            this.FocusBackColor = LanColor.DarkLight(backColor, -0.1f);
+            this.SelectedBackColor = LanColor.DarkLight(backColor, -0.06f);
+            this.FocusBackColor = LanColor.DarkLight(backColor, -0.03f);
             this.Focus = focus;
             this.Selected = selected;
         }

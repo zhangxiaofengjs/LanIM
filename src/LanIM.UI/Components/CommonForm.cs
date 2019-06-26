@@ -11,6 +11,7 @@ namespace Com.LanIM.UI.Components
     {
         private const int WM_NCHITTEST = 0x84;
         private const int WM_NCLBUTTONDBLCLK = 0xa3;
+        private const int HTCLIENT = 0x0001;
         private const int HTCAPTION = 0x0002;
         private const int HTLEFT = 10;
         private const int HTRIGHT = 11;
@@ -20,6 +21,8 @@ namespace Com.LanIM.UI.Components
         private const int HTBOTTOM = 15;
         private const int HTBOTTOMLEFT = 16;
         private const int HTBOTTOMRIGHT = 17;
+        private const int SC_MAXIMIZE = 0xF030;//最大化信息
+        private const int SC_MINIMIZE = 0xF020;//最小化信息
 
         private const int CAPTION_HEIGHT = 25;
         private const int FORM_BUTTON_WIDTH = 34;
@@ -29,6 +32,17 @@ namespace Com.LanIM.UI.Components
 
         private List<FormButton> _formButtons = new List<FormButton>();
         private Rectangle _formButtonsBounds = Rectangle.Empty;
+
+        protected override CreateParams CreateParams //点击任务栏实现最小化与还原
+        {
+            get
+            {
+                const int WS_MINIMIZEBOX = 0x00020000;
+                CreateParams cp = base.CreateParams;
+                cp.Style = cp.Style | WS_MINIMIZEBOX;   // 允许最小化操作  
+                return cp;
+            }
+        } 
 
         public CommonForm()
         {
@@ -115,7 +129,7 @@ namespace Com.LanIM.UI.Components
             {
                 case WM_NCHITTEST:
                     // 拉伸，调整窗口大小或者移动
-                    if (ResizeOrMove(ref m)) { return;}
+                    if (ResizeOrMove(ref m)) { return; }
                     break;
                 case WM_NCLBUTTONDBLCLK:
                     //双击窗口标题栏，最大化之类

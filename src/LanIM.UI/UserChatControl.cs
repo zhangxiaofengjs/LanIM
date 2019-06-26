@@ -9,11 +9,14 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using Com.LanIM.UI.Components;
 using Com.LanIM.Store.Models;
+using Com.LanIM.Store;
 
 namespace Com.LanIM.UI
 {
     public partial class UserChatControl : UserControl
     {
+        private MessageHistoryMapper _messageHistoryMapper = new MessageHistoryMapper();
+
         public UserChatControl()
         {
             InitializeComponent();
@@ -52,8 +55,8 @@ namespace Com.LanIM.UI
             if (e.KeyCode == Keys.Enter && !e.Control)
             {
                 User.SendTextMessage(Contacter, textBoxInput.Text);
-                
-                AddMessage(this.User, textBoxInput.Text);
+
+                AddMessage(this.User, this.Contacter, textBoxInput.Text);
 
                 textBoxInput.Text = "";
                 e.Handled = true;
@@ -62,17 +65,22 @@ namespace Com.LanIM.UI
 
         public void AddMessage(string message)
         {
-            AddMessage(this.Contacter, message);
+            AddMessage(this.Contacter, this.User, message);
         }
 
-        private void AddMessage(LanUser user, string message)
+        private void AddMessage(LanUser from, LanUser to, string message)
         {
-            Store.Models.Message m = new TextMessage(message);
-            m.UserId = User.ID;
+            Store.Models.Message m = new Store.Models.Message(MessageType.Text);
+            m.FromUserId = from.ID;
+            m.ToUserId = to.ID;
+            m.Content = message;
+            m.Time = DateTime.Now;
+
+            _messageHistoryMapper.Add(m);
 
             MessageListItem item = new MessageListItem();
             item.Message = m;
-            item.User = user;
+            item.User = from;
 
             messageListBox.Items.Add(item);
         }

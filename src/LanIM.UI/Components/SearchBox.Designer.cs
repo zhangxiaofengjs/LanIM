@@ -33,9 +33,10 @@
             // 
             // textBox1
             // 
-            this.textBox1.Location = new System.Drawing.Point(3, 3);
+            this.textBox1.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.textBox1.Location = new System.Drawing.Point(14, 3);
             this.textBox1.Name = "textBox1";
-            this.textBox1.Size = new System.Drawing.Size(204, 19);
+            this.textBox1.Size = new System.Drawing.Size(145, 12);
             this.textBox1.TabIndex = 0;
             // 
             // SearchBox

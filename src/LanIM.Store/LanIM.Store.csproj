@@ -48,13 +48,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ColumnMapping.cs" />
-    <Compile Include="DataTable2ModelConvert.cs" />
+    <Compile Include="MessageHistoryMapper.cs" />
+    <Compile Include="ModelConvert.cs" />
     <Compile Include="Sql.cs" />
     <Compile Include="ContacterMapper.cs" />
     <Compile Include="Models\Contacter.cs" />
     <Compile Include="Models\Message.cs" />
-    <Compile Include="Models\ImageMessage.cs" />
-    <Compile Include="Models\TextMessage.cs" />
     <Compile Include="LanIMStore.cs" />
     <Compile Include="Models\MessageType.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Com.LanIM.Store.Models
 {
-    internal enum MessageType
+    public enum MessageType
     {
         Text,
         Image,

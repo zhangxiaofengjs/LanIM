@@ -6,14 +6,18 @@ using System.Threading.Tasks;
 
 namespace Com.LanIM.Store.Models
 {
-    public abstract class Message
+    public class Message
     {
         public long ID { get; set; }
+        public MessageType Type { get; private set; }
         public DateTime Time { get; set; }
-        public string UserId { get; set; }
+        public string FromUserId { get; set; }
+        public string ToUserId { get; set; }
+        public string Content { get; set; }
 
-        public Message()
+        public Message(MessageType type)
         {
+            this.Type = type;
         }
     }
 }

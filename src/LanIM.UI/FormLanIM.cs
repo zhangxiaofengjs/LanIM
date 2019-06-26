@@ -33,7 +33,7 @@ namespace Com.LanIM.UI
             SynchronizationContext context = SynchronizationContext.Current;
 
             TaskFactory tf = new TaskFactory();
-            tf.StartNew(() => 
+            tf.StartNew(() =>
             {
                 InitMainUser(context);
 
@@ -225,12 +225,14 @@ namespace Com.LanIM.UI
         private void UserListBox_SelectionChanged(object sender, System.EventArgs e)
         {
             LanUser user = this.userListBox.SelectedUser;
-            if(user == null)
+            if (user == null)
             {
                 return;
             }
+
+            labelUserName.Text = user.NickName;
             UserChatControl ucc = GetUserChatControl(user);
-                ucc.BringToFront();
+            ucc.BringToFront();
         }
 
         private UserChatControl GetUserChatControl(LanUser user, bool bNullCreate = true)
@@ -238,7 +240,7 @@ namespace Com.LanIM.UI
             UserChatControl ucc = null;
             foreach (Control c in this.Controls)
             {
-                if(c is UserChatControl)
+                if (c is UserChatControl)
                 {
                     UserChatControl uccTmp = c as UserChatControl;
                     if (uccTmp.Contacter.ID == user.ID)
