@@ -1,8 +1,8 @@
-﻿using Com.LanIM.Common.Security;
+﻿using Com.LanIM.Common;
+using Com.LanIM.Common.Security;
 using Com.LanIM.Network;
 using Com.LanIM.Network.Packets;
 using Com.LanIM.Network.PacketsEncoder;
-using LanIM.Common;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -61,10 +61,12 @@ namespace Com.LanIM.UI
         }
         public IPv4Address IP { get; set; }
         public string NickName { get; set; }
-        public Image Image { get; set; }
+        public Image ProfilePhoto { get; set; }
         public int Port { get; set; }
         public LanUserState State { get; set; }
         public string ID { get { return IP.MAC; } }
+
+        private SynchronizationContext _context = null;
 
         //用户上下线等状态变化
         public event UserStateEventHandler UserEntry;
@@ -93,25 +95,13 @@ namespace Com.LanIM.UI
         public event FileTransportEventHandler FileSendCompleted;
         public event FileTransportErrorEventHandler FileSendError;
 
-        public LanUser()
+        public LanUser(SynchronizationContext context = null)
         {
+            this._context = context;
             this.Port = UdpClientEx.DEFAULT_PORT;
             this.Contacters = new List<LanUser>();
-            this.IP = GetIP();
-        }
-
-        private IPv4Address GetIP()
-        {
-            List<IPv4Address> ips = NetworkCardInterface.GetIPv4Address();
-            foreach (IPv4Address ip in ips)
-            {
-                if (ip.NetworkCardInterfaceType == NetworkCardInterfaceType.Physical ||
-                    ip.NetworkCardInterfaceType == NetworkCardInterfaceType.Wireless)
-                {
-                    return ip;
-                }
-            }
-            return null;
+            this.State = LanUserState.Offline;
+            this.IP = new IPv4Address();
         }
 
         public bool Listen()
@@ -122,7 +112,7 @@ namespace Com.LanIM.UI
             {
                 _client.Close();
             }
-            _client = new UdpClientEx(SynchronizationContext.Current)
+            _client = new UdpClientEx(_context)
             {
                 Port = this.Port,
                 SecurityKeys = SecurityKeys

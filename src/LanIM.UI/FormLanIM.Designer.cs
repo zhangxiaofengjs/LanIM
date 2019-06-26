@@ -52,7 +52,8 @@
             | System.Windows.Forms.AnchorStyles.Left)));
             this.userListBox.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(231)))), ((int)(((byte)(231)))), ((int)(((byte)(231)))));
             this.userListBox.Borders = Com.LanIM.UI.Components.Borders.None;
-            this.userListBox.HighlightFocus = false;
+            this.userListBox.HighlightWithNoFocus = false;
+            this.userListBox.ToggleSelection= false;
             this.userListBox.Location = new System.Drawing.Point(1, 134);
             this.userListBox.Margin = new System.Windows.Forms.Padding(4);
             this.userListBox.MultipleSelect = false;
@@ -95,8 +96,8 @@
             // 
             // FormLanIM
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 17F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.ClientSize = new System.Drawing.Size(1067, 652);
             this.Controls.Add(this.pictureBoxFace);
             this.Controls.Add(this.userListBox);

@@ -1,7 +1,9 @@
-﻿using Com.LanIM.Common.Logger;
+﻿using Com.LanIM.Common;
+using Com.LanIM.Common.Logger;
 using Com.LanIM.Store.Models;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.SQLite;
 using System.IO;
 using System.Linq;
@@ -12,9 +14,19 @@ namespace Com.LanIM.Store
 {
     public class LanIMStore
     {
-        private static readonly LanIMStore _instance = new LanIMStore();
+        private static LanIMStore _instance = null;
+        internal static LanIMStore Instance
+        {
+            get
+            {
+                return _instance;
+            }
+        }
 
         private SQLiteConnection _conn = null;
+
+        public SQLiteConnection Conn { get => _conn; set => _conn = value; }
+
 
         public LanIMStore()
         {
@@ -24,17 +36,29 @@ namespace Com.LanIM.Store
         {
             try
             {
-                string strDb = "lanim.db";
-                if (!File.Exists(strDb))
+                bool initDb = false;
+                string dbPath = LanConfig.Instance.DbPath;
+                if (!File.Exists(dbPath))
                 {
-                    StoreSchemaCreater.Execute(strDb);
+                    SQLiteConnection.CreateFile(dbPath);
+                    initDb = true;
                 }
 
-                _instance._conn = new SQLiteConnection(strDb);
-                _instance._conn.Open();
+                SQLiteConnectionStringBuilder builder = new SQLiteConnectionStringBuilder();
+                builder.DataSource = dbPath;
+                //builder.Password = "mimal";
+
+                _instance = new LanIMStore();
+                _instance.Conn = new SQLiteConnection(builder.ConnectionString);
+                _instance.Conn.Open();
+
+                if (initDb)
+                {
+                    _instance.ExecuteNoQuery(Sql.CREATE_DB);
+                }
                 return true;
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 LoggerFactory.Error("打开消息数据库错误。{0}", e);
             }
@@ -45,6 +69,28 @@ namespace Com.LanIM.Store
         public static bool UnInitialize()
         {
             return true;
+        }
+
+        internal DataTable Query(string sql)
+        {
+            SQLiteCommand cmd = _conn.CreateCommand();
+            cmd.CommandText = sql;
+            cmd.Connection = _conn;
+            cmd.CommandType = CommandType.Text;
+
+            SQLiteDataAdapter adpter = new SQLiteDataAdapter(cmd);
+            DataTable dt = new DataTable();
+            adpter.Fill(dt);
+            return dt;
+        }
+
+        internal void ExecuteNoQuery(string sql)
+        {
+            SQLiteCommand cmd = _conn.CreateCommand();
+            cmd.CommandText = sql;
+            cmd.Connection = _conn;
+            cmd.CommandType = CommandType.Text;
+            cmd.ExecuteNonQuery();
         }
     }
 }

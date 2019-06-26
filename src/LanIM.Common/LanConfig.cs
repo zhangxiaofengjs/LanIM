@@ -1,14 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Windows.Forms;
 
-namespace Com.LanIM.UI
+namespace Com.LanIM.Common
 {
-    class LanConfig
+   public class LanConfig
     {
         private static readonly LanConfig _instance = new LanConfig();
         public static LanConfig Instance
@@ -37,6 +37,24 @@ namespace Com.LanIM.UI
             }
         }
 
+        private readonly string _profilePhotoPath;
+        public string ProfilePhotoPath
+        {
+            get
+            {
+                return MakeSureFolderExist(_profilePhotoPath);
+            }
+        }
+
+        private readonly string _dbPath;
+        public string DbPath
+        {
+            get
+            {
+                return _dbPath;
+            }
+        }
+
         private string MakeSureFolderExist(string path)
         {
             if (!Directory.Exists(path))
@@ -60,16 +78,33 @@ namespace Com.LanIM.UI
         {
             get
             {
-                return "小兔子 " + DateTime.Now.ToString();
+                return "大狮子";
+            }
+        }
+
+        public Image ProfilePhoto
+        {
+            get
+            {
+                try
+                {
+                    string path = Path.Combine(this.AppDataDir, "profilephoto.png");
+                    return Image.FromFile(path);
+                }
+                catch
+                {
+                }
+                return null;
             }
         }
 
         public LanConfig()
         {
             _tempPath = Path.Combine(AppDataDir, "temp");
+            _profilePhotoPath = Path.Combine(AppDataDir, "profile-photo");
+            _dbPath = Path.Combine(AppDataDir, "lanim.db");
             _receivedFilePath = Path.Combine(AppDataDir, "files");
         }
-        
 
         public string GetTempFileName(string extension)
         {

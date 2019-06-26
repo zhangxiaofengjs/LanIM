@@ -45,18 +45,21 @@ namespace Com.LanIM.UI.Components
         {
             this._list.Add(item);
             this._owner.MeasureItemOnAdd(item);
+            this._owner.Invalidate();
         }
 
         public void AddRange(IEnumerable<ScrollableListItem> collection)
         {
             this._list.AddRange(collection);
             this._owner.MeasureItemOnAdd(collection);
+            this._owner.Invalidate();
         }
 
         public void Remove(ScrollableListItem item)
         {
             this._list.Remove(item);
             this._owner.MeasureItemOnRemove(item);
+            this._owner.Invalidate();
         }
 
         public void RemoveAt(int index)
@@ -64,12 +67,14 @@ namespace Com.LanIM.UI.Components
             ScrollableListItem item = this._list[index];
             this._list.RemoveAt(index);
             this._owner.MeasureItemOnRemove(item);
+            this._owner.Invalidate();
         }
 
         public void Clear()
         {
             this._list.Clear();
             this._owner.MeasureItems();
+            this._owner.Invalidate();
         }
 
         public int IndexOf(ScrollableListItem item)

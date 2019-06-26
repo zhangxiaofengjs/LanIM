@@ -64,7 +64,7 @@
             // 
             this.messageListBox.Borders = ((Com.LanIM.UI.Components.Borders)((Com.LanIM.UI.Components.Borders.Top | Com.LanIM.UI.Components.Borders.Bottom)));
             this.messageListBox.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.messageListBox.HighlightFocus = false;
+            this.messageListBox.HighlightWithNoFocus = false;
             this.messageListBox.Location = new System.Drawing.Point(0, 0);
             this.messageListBox.Margin = new System.Windows.Forms.Padding(4);
             this.messageListBox.MultipleSelect = false;
@@ -88,19 +88,18 @@
             this.textBoxInput.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.textBoxInput.BackColor = System.Drawing.SystemColors.HotTrack;
+            this.textBoxInput.BackColor = System.Drawing.Color.White;
             this.textBoxInput.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.textBoxInput.Location = new System.Drawing.Point(0, 30);
             this.textBoxInput.Multiline = true;
             this.textBoxInput.Name = "textBoxInput";
-            this.textBoxInput.Size = new System.Drawing.Size(776, 124);
+            this.textBoxInput.Size = new System.Drawing.Size(776, 127);
             this.textBoxInput.TabIndex = 6;
             this.textBoxInput.KeyDown += new System.Windows.Forms.KeyEventHandler(this.textBoxInput_KeyDown);
             // 
             // UserChatControl
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Inherit;
             this.Controls.Add(this.splitContainer1);
             this.Name = "UserChatControl";
             this.Size = new System.Drawing.Size(777, 576);

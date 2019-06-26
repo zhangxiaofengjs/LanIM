@@ -1,8 +1,8 @@
-﻿using Com.LanIM.Common.Logger;
+﻿using Com.LanIM.Common;
+using Com.LanIM.Common.Logger;
 using Com.LanIM.Common.Security;
 using Com.LanIM.Network.Packets;
 using Com.LanIM.Network.PacketsEncoder;
-using LanIM.Common;
 using System;
 using System.Collections.Generic;
 using System.IO;

@@ -110,10 +110,23 @@ namespace Com.LanIM.UI.Components
             }
         }
 
+        /// <summary>
+        /// 是否多选
+        /// </summary>
         [DefaultValue(true)]
         public bool MultipleSelect { get; set; }
+
+        /// <summary>
+        /// 当没有focus的时候是否高亮鼠标项
+        /// </summary>
         [DefaultValue(true)]
-        public bool HighlightFocus { get; set; }
+        public bool HighlightWithNoFocus { get; set; }
+
+        /// <summary>
+        /// 是否点击选中/非选中相互切换
+        /// </summary>
+        [DefaultValue(true)]
+        public bool ToggleSelection { get; set; }
 
         public event MeasureItemEventHandler MeasureItem;
         public event ItemClickedEventHandler ItemClicked;
@@ -202,7 +215,7 @@ namespace Com.LanIM.UI.Components
                 if (rect.IntersectsWith(clipRect))
                 {
                     //不在拖拽滑块，并且鼠标移动到上面就定为Focus
-                    bool isFocus = (this.HighlightFocus || !this.HighlightFocus && this.Focused ) && 
+                    bool isFocus = (this.HighlightWithNoFocus || !this.HighlightWithNoFocus && this.Focused ) && 
                         !this._scrollBarHandleDrag && rect.Contains(PointToClient(MousePosition));
                     DrawItemEventArgs args = new DrawItemEventArgs(i, item, g, rect, isFocus, _selectedIndexes.ContainsKey(i),
                         this.Font, this.ForeColor, this.BackColor);
@@ -318,9 +331,14 @@ namespace Com.LanIM.UI.Components
             }
 
             //设置选择状态
+            bool bSelectChange = false;
             if (this._selectedIndexes.ContainsKey(itemInfo.Index))
             {
-                this._selectedIndexes.Remove(itemInfo.Index);
+                if (this.ToggleSelection)
+                {
+                    this._selectedIndexes.Remove(itemInfo.Index);
+                    bSelectChange = true;
+                }
             }
             else
             {
@@ -330,14 +348,18 @@ namespace Com.LanIM.UI.Components
                     this._selectedIndexes.Clear();
                 }
                 this._selectedIndexes.Add(itemInfo.Index, itemInfo.Item);
+                bSelectChange = true;
             }
 
             //触发点击事件
             ItemClickedEventArgs args = new ItemClickedEventArgs(itemInfo.Item);
             OnItemClicked(args);
 
-            //触发选择变化事件
-            OnSelectionChanged(new EventArgs());
+            if (bSelectChange)
+            {
+                //触发选择变化事件
+                OnSelectionChanged(new EventArgs());
+            }
 
             //描绘选择状态
             this.Invalidate(itemInfo.Bounds);
@@ -420,7 +442,7 @@ namespace Com.LanIM.UI.Components
                 }
             }
 
-            this.TotleItemHeight = totleItemHeight;
+            this.TotleItemHeight += totleItemHeight;
         }
 
         internal void MeasureItemOnRemove(ScrollableListItem item)

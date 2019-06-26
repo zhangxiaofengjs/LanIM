@@ -11,10 +11,11 @@ namespace Com.LanIM.UI.Components
     class MessageListItem : ScrollableListItem
     {
         public Message Message { get; set; }
+        public LanUser User { get; set; }
 
         public override string ToString()
         {
-            return Message.ToString();
+            return "user=" + User.ToString() + " message=" + Message.ToString();
         }
     }
 }

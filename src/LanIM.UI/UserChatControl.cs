@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Com.LanIM.UI.Components;
+using Com.LanIM.Store.Models;
 
 namespace Com.LanIM.UI
 {
@@ -51,7 +52,29 @@ namespace Com.LanIM.UI
             if (e.KeyCode == Keys.Enter && !e.Control)
             {
                 User.SendTextMessage(Contacter, textBoxInput.Text);
+                
+                AddMessage(this.User, textBoxInput.Text);
+
+                textBoxInput.Text = "";
+                e.Handled = true;
             }
+        }
+
+        public void AddMessage(string message)
+        {
+            AddMessage(this.Contacter, message);
+        }
+
+        private void AddMessage(LanUser user, string message)
+        {
+            Store.Models.Message m = new TextMessage(message);
+            m.UserId = User.ID;
+
+            MessageListItem item = new MessageListItem();
+            item.Message = m;
+            item.User = user;
+
+            messageListBox.Items.Add(item);
         }
     }
 }

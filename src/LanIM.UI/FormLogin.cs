@@ -1,4 +1,5 @@
-﻿using Com.LanIM.Network;
+﻿using Com.LanIM.Common;
+using Com.LanIM.Network;
 using Com.LanIM.UI.Components;
 using System;
 using System.Collections.Generic;
@@ -17,14 +18,17 @@ namespace Com.LanIM.UI
         private Font _loginLabelFont;
         private Font _loginLabelFontFocus;
 
-        public event EventHandler LoginClicked;
-
         public FormLogin()
         {
             InitializeComponent();
 
             this._loginLabelFont = labelLogin.Font;
             this._loginLabelFontFocus = new Font(labelLogin.Font, FontStyle.Bold);
+            Image image = LanConfig.Instance.ProfilePhoto;
+            if(image != null)
+            {
+                pictureBox.Image = image;
+            }
         }
 
         private void labelLogin_MouseEnter(object sender, EventArgs e)
@@ -55,7 +59,6 @@ namespace Com.LanIM.UI
         private void pictureBox_Click(object sender, EventArgs e)
         {
             this.Close();
-            //LoginClicked?.Invoke(this, new EventArgs());
         }
     }
 }

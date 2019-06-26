@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace LanIM.Common
+namespace Com.LanIM.Common
 {
     public class LanFile
     {
@@ -28,6 +28,11 @@ namespace LanIM.Common
             this.Length = fileInfo.Length;
             this.Exist = fileInfo.Exists;
             this.IsFolder = this.Exist && File.Exists(this.Path);
+        }
+
+        public static bool Exists(string path)
+        {
+            return File.Exists(path);
         }
 
         public override string ToString()

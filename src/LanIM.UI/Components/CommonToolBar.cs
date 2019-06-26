@@ -14,14 +14,14 @@ namespace Com.LanIM.UI.Components
 
         public CommonToolBar()
         {
-            this.SetStyle(ControlStyles.UserPaint, true);
-            this.SetStyle(ControlStyles.AllPaintingInWmPaint, true);
-            this.SetStyle(ControlStyles.OptimizedDoubleBuffer, true);
-            this.SetStyle(ControlStyles.ResizeRedraw, true);
+            base.SetStyle(ControlStyles.UserPaint, true);
+            base.SetStyle(ControlStyles.AllPaintingInWmPaint, true);
+            base.SetStyle(ControlStyles.OptimizedDoubleBuffer, true);
+            base.SetStyle(ControlStyles.ResizeRedraw, true);
 
-            this.BackColor = Color.White;
-            this.Height = 30;
-            this.Padding = new Padding(10,5,5,5);
+            base.BackColor = Color.White;
+            base.Height = 30;
+            base.Padding = new Padding(10,5,5,5);
             Items = new CommonToolBarItemCollection(this);
         }
 
@@ -44,6 +44,10 @@ namespace Com.LanIM.UI.Components
             }
         }
 
+        protected override void OnSizeChanged(EventArgs e)
+        {
+            base.OnSizeChanged(e);
+        }
         protected override void OnMouseMove(MouseEventArgs e)
         {
             base.OnMouseMove(e);

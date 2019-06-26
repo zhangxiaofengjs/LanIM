@@ -53,7 +53,7 @@
             this.labelLogin.Name = "labelLogin";
             this.labelLogin.Size = new System.Drawing.Size(258, 34);
             this.labelLogin.TabIndex = 2;
-            this.labelLogin.Text = "Sample-PC";
+            this.labelLogin.Text = "User";
             this.labelLogin.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             this.labelLogin.MouseEnter += new System.EventHandler(this.labelLogin_MouseEnter);
             this.labelLogin.MouseLeave += new System.EventHandler(this.labelLogin_MouseLeave);

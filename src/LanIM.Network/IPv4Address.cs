@@ -38,9 +38,14 @@ namespace Com.LanIM.Network
                 MAC);
         }
 
-        public static string GetHostName()
+        public static IPAddress Parse(string iP)
         {
-            return Dns.GetHostName();
+            if (!string.IsNullOrEmpty(iP) &&
+            IPAddress.TryParse(iP, out IPAddress ip))
+            {
+                return ip;
+            }
+            return null;
         }
     }
 }

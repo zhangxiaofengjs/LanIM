@@ -8,7 +8,7 @@ namespace Com.LanIM.Store.Models
 {
     public abstract class Message
     {
-        public int ID { get; set; }
+        public long ID { get; set; }
         public DateTime Time { get; set; }
         public string UserId { get; set; }
 
