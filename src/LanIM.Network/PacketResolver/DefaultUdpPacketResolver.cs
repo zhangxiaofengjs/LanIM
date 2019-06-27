@@ -74,6 +74,16 @@ namespace Com.LanIM.Network.PacketsResolver
 
             extend.NickName = rdr.ReadString();
             extend.HideState = rdr.ReadBoolean();
+
+            len = rdr.ReadInt32();
+            if(len != 0)
+            {
+                byte[] buf = rdr.ReadBytes(len);
+                using (MemoryStream ms = new MemoryStream(buf))
+                {
+                    extend.ProfilePhoto = Image.FromStream(ms);
+                }
+            }
             return extend;
         }
 

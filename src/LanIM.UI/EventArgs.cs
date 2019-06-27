@@ -1,4 +1,5 @@
-﻿using Com.LanIM.Network;
+﻿using Com.LanIM.Common;
+using Com.LanIM.Network;
 using Com.LanIM.Network.Packets;
 using System;
 using System.Collections.Generic;
@@ -7,115 +8,73 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace Com.LanIM.UI
 {
-    class LanIMUserEventArgs
+    public class MeasureItemEventArgs
     {
-        private readonly LanUser _user;
-        public LanUser User
-        {
-            get { return _user; }
-        }
+        public Graphics Graphics { get; }
+        public ScrollableListItem Item { get; }
+        public int Index { get; }
+        public Font Font { get; set; }
 
-        public LanIMUserEventArgs(LanUser user)
+        public MeasureItemEventArgs(int index, ScrollableListItem item, Graphics g, Font font)
         {
-            _user = user;
+            this.Index = index;
+            this.Item = item;
+            this.Graphics = g;
+            this.Font = font;
         }
     }
 
-    class LanIMPacketEventArgs
+    public class DrawItemEventArgs
     {
-        private readonly UdpPacket _packet;
-        public UdpPacket Packet
+        public Graphics Graphics { get; }
+        public ScrollableListItem Item { get; }
+        public int Index { get; }
+        public Rectangle Bounds { get; }
+        public Font Font{ get; set; }
+        public Color ForeColor { get; set; }
+        public Color BackColor { get; set; }
+        public Color SelectedBackColor { get; set; }
+        public Color FocusBackColor { get; set; }
+        public bool Focus { get; }
+        public bool Selected { get; }
+
+        public DrawItemEventArgs(int index, ScrollableListItem item, 
+            Graphics g, Rectangle itemBounds, bool focus, bool selected,
+            Font font, Color foreColor, Color backColor)
         {
-            get { return _packet; }
+            this.Index = index;
+            this.Item = item;
+            this.Graphics = g;
+            this.Bounds = itemBounds;
+            this.Font = font;
+            this.ForeColor = foreColor;
+            this.BackColor = backColor;
+            this.SelectedBackColor = LanColor.DarkLight(backColor, -0.06f);
+            this.FocusBackColor = LanColor.DarkLight(backColor, -0.03f);
+            this.Focus = focus;
+            this.Selected = selected;
         }
 
-        public LanIMPacketEventArgs(UdpPacket packet)
+        public void DrawBackground()
         {
-            _packet = packet;
-        }
-    }
-
-    class SendEventArgs  : LanIMPacketEventArgs
-    {
-        private readonly bool _success = false;
-        public bool Success
-        {
-            get
+            using (Brush brush = new SolidBrush(this.Selected ? this.SelectedBackColor : 
+                this.Focus ? this.FocusBackColor : this.BackColor))
             {
-                return this._success;
+                this.Graphics.FillRectangle(brush, this.Bounds);
             }
         }
-
-        public SendEventArgs(UdpPacket packet, bool success)
-       : base(packet)
-        {
-            this._success = success;
-        }
     }
-
-    class UserStateChangeEventArgs : LanIMUserEventArgs
+    public class ItemClickedEventArgs
     {
-        public UserStateChangeEventArgs(LanUser user)
-            :base(user)
+        public ScrollableListItem Item { get; }
+
+        public ItemClickedEventArgs(ScrollableListItem item)
         {
-        }
-    }
-
-    class TextMessageReceivedEventArgs : LanIMUserEventArgs
-    {
-        private readonly String _meassage;
-
-        public string Message
-        {
-            get { return _meassage; }
-        }
-
-        public TextMessageReceivedEventArgs(LanUser user, string msg)
-            :base(user)
-        {
-            _meassage = msg;
-            
-        }
-    }
-
-    class ImageReceivedEventArgs : LanIMUserEventArgs
-    {
-        private readonly Image _image;
-
-        public Image Image
-        {
-            get { return _image; }
-        }
-
-        public ImageReceivedEventArgs(LanUser user, Image image)
-            : base(user)
-        {
-            _image = image;
-        }
-    }
-
-    class FileTransportRequestedEventArgs : LanIMUserEventArgs
-    {
-        private readonly TransportFile _file;
-
-        public TransportFile File
-        {
-            get { return _file; }
-        }
-
-        public FileTransportRequestedEventArgs(LanUser user, TransportFile file)
-            : base(user)
-        {
-            this._file = file;
-        }
-
-        public override string ToString()
-        {
-            return string.Format("{{user={0}, file={1}}}",
-                this.User, this.File);
+            this.Item = item;
         }
     }
 }

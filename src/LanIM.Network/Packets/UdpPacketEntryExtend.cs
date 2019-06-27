@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -13,6 +14,7 @@ namespace Com.LanIM.Network.Packets
     {
         public byte[] PublicKey { get; set; }
         public string NickName { get; set; }
+        public Image ProfilePhoto { get; set; }
         public bool HideState { get; set; }//隐藏在线
 
         public UdpPacketEntryExtend()

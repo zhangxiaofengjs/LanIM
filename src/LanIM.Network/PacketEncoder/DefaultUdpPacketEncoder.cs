@@ -77,6 +77,21 @@ namespace Com.LanIM.Network.PacketsEncoder
 
             wtr.Write(extend.NickName);
             wtr.Write(extend.HideState);
+
+            if (extend.ProfilePhoto == null)
+            {
+                wtr.Write(0);
+            }
+            else
+            {
+                using (MemoryStream ms = new MemoryStream())
+                {
+                    extend.ProfilePhoto.Save(ms, ImageFormat.Png);
+                    wtr.Write((int)ms.Length);
+                    byte[] buf = ms.ToArray();
+                    wtr.Write(buf);
+                }
+            }
         }
 
         private static void EncodeResponseExtend(BinaryWriter wtr, object extendObj)

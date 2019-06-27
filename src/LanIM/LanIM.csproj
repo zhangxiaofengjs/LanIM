@@ -4,10 +4,10 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{3A43601C-347E-4CD5-8C96-7C417A206CEB}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <RootNamespace>Com.LanIM.UI</RootNamespace>
-    <AssemblyName>ui</AssemblyName>
+    <ProjectGuid>{95014D1E-72F3-4E66-AABC-F08BFA3CE9CE}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <RootNamespace>Com.LanIM</RootNamespace>
+    <AssemblyName>lanim</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -32,9 +32,6 @@
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <Prefer32Bit>true</Prefer32Bit>
-  </PropertyGroup>
-  <PropertyGroup>
-    <StartupObject />
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
     <DebugSymbols>true</DebugSymbols>
@@ -90,35 +87,63 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Borders.cs" />
-    <Compile Include="CommonForm.cs">
+    <Compile Include="EventArgs.cs" />
+    <Compile Include="EventHandlers.cs" />
+    <Compile Include="FormConfig.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="CommonToolBarItem.cs" />
-    <Compile Include="EventArgs.cs" />
-    <Compile Include="CommonToolBar.cs">
+    <Compile Include="FormConfig.Designer.cs">
+      <DependentUpon>FormConfig.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FormLanIM.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormLanIM.Designer.cs">
+      <DependentUpon>FormLanIM.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FormLogin.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormLogin.Designer.cs">
+      <DependentUpon>FormLogin.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FormTest.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormTest.Designer.cs">
+      <DependentUpon>FormTest.cs</DependentUpon>
+    </Compile>
+    <Compile Include="LanUser.cs" />
+    <Compile Include="LanUserState.cs" />
+    <Compile Include="LanUserStatus.cs" />
+    <Compile Include="Components\MessageListBox.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="CommonToolBarItemCollection.cs" />
-    <Compile Include="ProfilePhotoPictureBox.cs">
-      <SubType>Component</SubType>
-    </Compile>
-    <Compile Include="SearchBox.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="SearchBox.Designer.cs">
-      <DependentUpon>SearchBox.cs</DependentUpon>
-    </Compile>
-    <Compile Include="FormButtons.cs" />
-    <Compile Include="EventHandlers.cs" />
-    <Compile Include="ScrollableListItemCollection.cs" />
-    <Compile Include="ScrollableListItem.cs" />
+    <Compile Include="Components\MessageListItem.cs" />
+    <Compile Include="ProfilePhotoPool.cs" />
+    <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ScrollableList.cs">
+    <Compile Include="Components\UserChatControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <EmbeddedResource Include="SearchBox.resx">
-      <DependentUpon>SearchBox.cs</DependentUpon>
+    <Compile Include="Components\UserChatControl.Designer.cs">
+      <DependentUpon>UserChatControl.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Components\UserListBox.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Components\UserListItem.cs" />
+    <EmbeddedResource Include="FormConfig.resx">
+      <DependentUpon>FormConfig.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FormLanIM.resx">
+      <DependentUpon>FormLanIM.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FormLogin.resx">
+      <DependentUpon>FormLogin.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FormTest.resx">
+      <DependentUpon>FormTest.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
@@ -130,6 +155,9 @@
       <DependentUpon>Resources.resx</DependentUpon>
       <DesignTime>True</DesignTime>
     </Compile>
+    <EmbeddedResource Include="Components\UserChatControl.resx">
+      <DependentUpon>UserChatControl.cs</DependentUpon>
+    </EmbeddedResource>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -142,50 +170,36 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\LanIM.Common\LanIM.Common.csproj">
-      <Project>{6B680983-64BE-480A-9B53-6690B42A934D}</Project>
+      <Project>{6b680983-64be-480a-9b53-6690b42a934d}</Project>
       <Name>LanIM.Common</Name>
     </ProjectReference>
     <ProjectReference Include="..\LanIM.Network\LanIM.Network.csproj">
       <Project>{8c146b81-4a5e-42b7-a464-b4aaea624ab1}</Project>
       <Name>LanIM.Network</Name>
     </ProjectReference>
+    <ProjectReference Include="..\LanIM.Store\LanIM.Store.csproj">
+      <Project>{2b4541b1-99d6-4c53-9b3a-9129439b840c}</Project>
+      <Name>LanIM.Store</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\LanIM.UI\LanIM.UI.csproj">
+      <Project>{3a43601c-347e-4cd5-8c96-7c417a206ceb}</Project>
+      <Name>LanIM.UI</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\close.png" />
+    <None Include="Resources\chat_history.png" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\close_hover.png" />
+    <None Include="Resources\chat_history_focus.png" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\max.png" />
+    <None Include="Resources\folder.png" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\max_hover.png" />
+    <None Include="Resources\folder_focus.png" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\min_hover.png" />
+    <None Include="Resources\logo.png" />
   </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\min.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\close_press.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\max_press.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\min_press.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\normal.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\normal_hover.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\normal_press.png" />
-  </ItemGroup>
-  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

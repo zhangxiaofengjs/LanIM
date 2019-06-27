@@ -186,7 +186,7 @@ namespace Com.LanIM.Network
             FileStream fs = null;
             try
             {
-                fs = new FileStream(lanFile.Path, FileMode.Open);
+                fs = new FileStream(lanFile.Path, FileMode.Open, FileAccess.Read);
             }
             catch (Exception e)
             {

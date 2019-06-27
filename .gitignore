@@ -1,5 +1,7 @@
 .svn
 src/.vs
+src/LanIM/obj
+src/LanIM/bin
 src/LanIM.Network/obj
 src/LanIM.Network/bin
 src/LanIM.Server/obj

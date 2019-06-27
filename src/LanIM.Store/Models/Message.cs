@@ -18,6 +18,7 @@ namespace Com.LanIM.Store.Models
         public Message(MessageType type)
         {
             this.Type = type;
+            this.Time = DateTime.Now;
         }
     }
 }

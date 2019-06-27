@@ -28,6 +28,15 @@ namespace Com.LanIM.Common
             }
         }
 
+        private readonly string _picturePath;
+        public string PicturePath
+        {
+            get
+            {
+                return MakeSureFolderExist(_picturePath);
+            }
+        }
+
         private readonly string _receivedFilePath;
         public string ReceivedFilePath
         {
@@ -82,27 +91,12 @@ namespace Com.LanIM.Common
             }
         }
 
-        public Image ProfilePhoto
-        {
-            get
-            {
-                try
-                {
-                    string path = Path.Combine(this.AppDataDir, "profilephoto.png");
-                    return Image.FromFile(path);
-                }
-                catch
-                {
-                }
-                return null;
-            }
-        }
-
-        public LanConfig()
+       public LanConfig()
         {
             _tempPath = Path.Combine(AppDataDir, "temp");
             _profilePhotoPath = Path.Combine(AppDataDir, "profile-photo");
             _dbPath = Path.Combine(AppDataDir, "lanim.db");
+            _picturePath = Path.Combine(AppDataDir, "picture");
             _receivedFilePath = Path.Combine(AppDataDir, "files");
         }
 

@@ -13,6 +13,12 @@ namespace Com.LanIM.Store
     {
         public void Add(Message m)
         {
+            if (m is IPrepare)
+            {
+                //如果是需要准备的文件，事先准备工作
+                (m as IPrepare).Prepare();
+            }
+
             ModelConvert<Message> convert = new ModelConvert<Message>();
 
             SQLiteParameter[] parameters = convert.CreateParameters(m, 

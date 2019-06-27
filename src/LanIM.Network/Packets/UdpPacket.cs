@@ -24,7 +24,9 @@ namespace Com.LanIM.Network.Packets
 
         public const ulong CMD_OPTION_NEED_RESPONSE = 0x00000100; //是否需要回应消息
         public const ulong CMD_OPTION_SEND_FILE_IMAGE = 0x00000200; //是否发送的图像
-        
+        public const ulong CMD_OPTION_STATE_PROFILE_PHOTO = 0x00000400; //发送的头像
+        public const ulong CMD_OPTION_STATE_XXX = 0x00000800; //发送的头像
+
         public override short Type
         {
             get

@@ -47,5 +47,19 @@ namespace Com.LanIM.Network
             }
             return null;
         }
+
+        public static IPv4Address GetLocalMachineIPV4()
+        {
+            List<IPv4Address> ips = NetworkCardInterface.GetIPv4Address();
+            foreach (IPv4Address ip in ips)
+            {
+                if (ip.NetworkCardInterfaceType == NetworkCardInterfaceType.Physical ||
+                    ip.NetworkCardInterfaceType == NetworkCardInterfaceType.Wireless)
+                {
+                    return ip;
+                }
+            }
+            return null;
+        }
     }
 }
