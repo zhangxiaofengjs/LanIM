@@ -78,7 +78,7 @@ namespace Com.LanIM.Common
             get
             {
                 string dataDir = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-                dataDir = Path.Combine(dataDir, "lanmi");
+                dataDir = Path.Combine(dataDir, "lanim");
                 return MakeSureFolderExist(dataDir);
             }
         }
@@ -108,6 +108,11 @@ namespace Com.LanIM.Common
                 path += extension;
             }
             return path;
+        }
+
+        public string GetPictureFilePath(string fileName)
+        {
+            return Path.Combine(this.PicturePath, fileName);
         }
     }
 }

@@ -6,10 +6,8 @@ using System.Threading.Tasks;
 
 namespace Com.LanIM.Store.Models
 {
-    public enum MessageType
+    public interface IPost
     {
-        Text,
-        Image,
-        File,
+        void Post();
     }
 }

@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Com.LanIM
 {
-    class LanIMUserEventArgs
+    public class LanIMUserEventArgs
     {
         private readonly LanUser _user;
         public LanUser User
@@ -24,7 +24,7 @@ namespace Com.LanIM
         }
     }
 
-    class LanIMPacketEventArgs
+    public class LanIMPacketEventArgs
     {
         private readonly UdpPacket _packet;
         public UdpPacket Packet
@@ -38,7 +38,7 @@ namespace Com.LanIM
         }
     }
 
-    class SendEventArgs  : LanIMPacketEventArgs
+    public class SendEventArgs  : LanIMPacketEventArgs
     {
         private readonly bool _success = false;
         public bool Success
@@ -56,7 +56,7 @@ namespace Com.LanIM
         }
     }
 
-    class UserStateChangeEventArgs : LanIMUserEventArgs
+    public class UserStateChangeEventArgs : LanIMUserEventArgs
     {
         public UserStateChangeEventArgs(LanUser user)
             :base(user)
@@ -64,24 +64,21 @@ namespace Com.LanIM
         }
     }
 
-    class TextMessageReceivedEventArgs : LanIMUserEventArgs
+    public class TextMessageReceivedEventArgs : LanIMUserEventArgs
     {
-        private readonly String _meassage;
+        public long ID { get; }
 
-        public string Message
-        {
-            get { return _meassage; }
-        }
+        public string Message { get; }
 
-        public TextMessageReceivedEventArgs(LanUser user, string msg)
+        public TextMessageReceivedEventArgs(LanUser user, long id, string msg)
             :base(user)
         {
-            _meassage = msg;
-            
+            ID = id;
+            Message = msg;
         }
     }
 
-    class ImageReceivedEventArgs : LanIMUserEventArgs
+    public class ImageReceivedEventArgs : LanIMUserEventArgs
     {
         private readonly Image _image;
 
@@ -97,7 +94,7 @@ namespace Com.LanIM
         }
     }
 
-    class FileTransportRequestedEventArgs : LanIMUserEventArgs
+    public class FileTransportRequestedEventArgs : LanIMUserEventArgs
     {
         private readonly TransportFile _file;
 

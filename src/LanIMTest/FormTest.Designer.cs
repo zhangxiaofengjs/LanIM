@@ -1,6 +1,6 @@
 ﻿namespace Com.LanIM
 {
-    partial class FormIPMsgTest
+    partial class FormTest
     {
         /// <summary>
         /// Required designer variable.
@@ -274,6 +274,7 @@
             // 
             // pictureBox2
             // 
+            this.pictureBox2.Image = global::LanIMTest.Properties.Resources.min;
             this.pictureBox2.Location = new System.Drawing.Point(93, 124);
             this.pictureBox2.Name = "pictureBox2";
             this.pictureBox2.Size = new System.Drawing.Size(69, 50);
@@ -283,6 +284,7 @@
             // 
             // pictureBox1
             // 
+            this.pictureBox1.Image = global::LanIMTest.Properties.Resources.max;
             this.pictureBox1.Location = new System.Drawing.Point(18, 124);
             this.pictureBox1.Name = "pictureBox1";
             this.pictureBox1.Size = new System.Drawing.Size(69, 50);
@@ -314,13 +316,19 @@
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.scrollableUserControl1.BackColor = System.Drawing.Color.LavenderBlush;
+            this.scrollableUserControl1.Borders = ((Com.LanIM.UI.Borders)((((Com.LanIM.UI.Borders.Left | Com.LanIM.UI.Borders.Top) 
+            | Com.LanIM.UI.Borders.Right) 
+            | Com.LanIM.UI.Borders.Bottom)));
+            this.scrollableUserControl1.HighlightWithNoFocus = false;
             this.scrollableUserControl1.Location = new System.Drawing.Point(686, 57);
             this.scrollableUserControl1.MultipleSelect = false;
             this.scrollableUserControl1.Name = "scrollableUserControl1";
-            this.scrollableUserControl1.Size = new System.Drawing.Size(285, 346);
+            this.scrollableUserControl1.Size = new System.Drawing.Size(241, 156);
             this.scrollableUserControl1.TabIndex = 5;
+            this.scrollableUserControl1.ToggleSelection = false;
+            this.scrollableUserControl1.Paint += new System.Windows.Forms.PaintEventHandler(this.scrollableUserControl1_Paint);
             // 
-            // FormIPMsgTest
+            // FormTest
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
@@ -329,7 +337,7 @@
             this.Controls.Add(this.groupBox3);
             this.Controls.Add(this.richTextBox1);
             this.Controls.Add(this.button2);
-            this.Name = "FormIPMsgTest";
+            this.Name = "FormTest";
             this.Text = "FormIPMsgTest";
             this.Load += new System.EventHandler(this.FormIPMsgTest_Load);
             this.groupBox1.ResumeLayout(false);

@@ -10,13 +10,13 @@ namespace Com.LanIM.Store
 {
     public class ContacterMapper
     {
-        public List<Contacter> QueryList()
+        public List<Contacter> Query()
         {
-            DataTable dt = LanIMStore.Instance.Query(Sql.QUERY_CONTACTERS);
+            DataTable dt = LanIMStore.Instance.Query(Sql.QUERY_CONTACTER);
 
             ModelConvert<Contacter> convert = new ModelConvert<Contacter>();
-
-            List<Contacter> cs = convert.Convert(dt,
+            IInstanceCreater<Contacter> ic = new CommonInstanceCreater<Contacter>();
+            List<Contacter> cs = convert.Convert(dt, ic,
                 new ColumnMapping("C_ID", "ID"),
                 new ColumnMapping("C_NICK_NAME", "NickName"),
                 new ColumnMapping("C_MAC", "MAC"),

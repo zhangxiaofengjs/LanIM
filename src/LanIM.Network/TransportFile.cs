@@ -18,7 +18,8 @@ namespace Com.LanIM.Network
     public class TransportFile
     {
         public long ID { get; set; }
-        public IPAddress Remote{ get; set; }
+        public string MAC { get; set; }
+        public IPAddress Remote { get; set; }
         public int Port { get; set; }
         public byte[] PublicKey { get; set; }
         public LanFile File { get; set; }
@@ -59,9 +60,10 @@ namespace Com.LanIM.Network
 
         private long _startTransportTicks;
 
-        public TransportFile(long id, IPAddress remote, int port, byte[] publicKey, LanFile file)
+        public TransportFile(long id, string mac, IPAddress remote, int port, byte[] publicKey, LanFile file)
         {
             this.ID = id;
+            this.MAC = mac;
             this.Remote = remote;
             this.Port = port;
             this.PublicKey = publicKey;
@@ -74,7 +76,7 @@ namespace Com.LanIM.Network
                 this.ID, this.Remote, this.Port, this.File, this.SavePath);
         }
 
-        public void StartTransport()
+        internal void StartTransport()
         {
             _startTransportTicks = _nowTransportTicks = DateTime.Now.Ticks;
         }

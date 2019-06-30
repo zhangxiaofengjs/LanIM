@@ -34,7 +34,8 @@ namespace Com.LanIM.Network.PacketsEncoder
                 wtr.Write(_packet.Type);
                 wtr.Write(_packet.ID);
                 wtr.Write(_packet.Command);
-                wtr.Write(_packet.MAC);
+                wtr.Write(_packet.FromMAC);
+                wtr.Write(_packet.ToMAC);
 
                 switch (_packet.CMD)
                 {

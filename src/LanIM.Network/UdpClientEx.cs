@@ -127,7 +127,7 @@ namespace Com.LanIM.Network
                         LoggerFactory.Debug("get resolver:{0}", resolver.GetType().Name);
 
                         UdpPacket packet = resolver.Resolve() as UdpPacket;
-                        packet.Remote = remoteEp.Address;
+                        packet.Address = remoteEp.Address;
                         packet.Port = remoteEp.Port;
                         LoggerFactory.Debug("resolved packet:{0}", packet);
 
@@ -188,7 +188,7 @@ namespace Com.LanIM.Network
         public void Send(UdpPacket packet)
         {
             //异步发送
-            IPEndPoint remoteIpEp = new IPEndPoint(packet.Remote, packet.Port);
+            IPEndPoint remoteIpEp = new IPEndPoint(packet.Address, packet.Port);
 
             packet.GenerateID();
 

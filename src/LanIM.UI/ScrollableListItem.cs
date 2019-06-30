@@ -20,10 +20,11 @@ namespace Com.LanIM.UI
                 return Bounds.Height;
             }
         }
-
+        internal bool Selected { get; set; }
         public ScrollableListItem()
         {
             this.Bounds = new Rectangle(0,0, 0, DEFAULT_ITEM_HEIGHT);
+            this.Selected = false;
         }
     }
 }

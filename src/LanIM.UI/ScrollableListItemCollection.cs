@@ -65,6 +65,16 @@ namespace Com.LanIM.UI
             }
         }
 
+        public void InsertRange(int pos, IEnumerable<ScrollableListItem> collection)
+        {
+            this._list.InsertRange(pos, collection);
+            if (this._owner != null)
+            {
+                this._owner.MeasureItemOnAdd(collection);
+                this._owner.Invalidate();
+            }
+        }
+
         public void Remove(ScrollableListItem item)
         {
             this._list.Remove(item);

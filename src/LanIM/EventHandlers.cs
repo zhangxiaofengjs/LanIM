@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace Com.LanIM
 {
-    delegate void SendEventHandler(object sender, SendEventArgs args);
-    delegate void UserStateEventHandler(object sender, UserStateChangeEventArgs args);
-    delegate void TextMessageReceivedHandler(object sender, TextMessageReceivedEventArgs args);
-    delegate void ImageReceivedHandler(object sender, ImageReceivedEventArgs args);
-    delegate void FileTransportRequestedHandler(object sender, FileTransportRequestedEventArgs args);
+    public delegate void SendEventHandler(object sender, SendEventArgs args);
+    public delegate void UserStateEventHandler(object sender, UserStateChangeEventArgs args);
+    public delegate void TextMessageReceivedHandler(object sender, TextMessageReceivedEventArgs args);
+    public delegate void ImageReceivedHandler(object sender, ImageReceivedEventArgs args);
+    public delegate void FileTransportRequestedHandler(object sender, FileTransportRequestedEventArgs args);
 }

@@ -17,7 +17,9 @@ namespace Com.LanIM.Store
                 C_TIME DATETIME      NOT NULL,
                 C_FROM_USER_ID CHAR (12)     NOT NULL,
                 C_TO_USER_ID CHAR (12)     NOT NULL,
-                C_CONTENT VARCHAR(512)
+                C_CONTENT VARCHAR(512),
+                C_FLAG         BOOLEAN     NOT NULL
+                               DEFAULT (0)
             );
 
             CREATE TABLE CONTACTER_TBL(
@@ -28,24 +30,30 @@ namespace Com.LanIM.Store
                 C_IP        CHAR(15)
             );";
 
-        public const string QUERY_CONTACTERS =
-            @"SELECT C_ID,
-                     C_NICK_NAME,
-                     C_MAC,
-                     C_IP 
+        public const string QUERY_CONTACTER =
+            @"SELECT C_ID, C_NICK_NAME, C_MAC, C_IP
               FROM CONTACTER_TBL";
 
-        public const string QUERY_MESSAGES =
-            @"SELECT C_ID,
-                     C_TYPE,
-                     C_TIME,
-                     C_USER_ID,
-                     C_CONTENT 
+        public const string QUERY_MAX_MESSAGE_ID =
+            @"SELECT MAX(C_ID)
               FROM MSG_HISTORY_TBL";
 
+        public const string QUERY_USER_LATEST_MESSAGE =
+            @"SELECT C_ID, C_TYPE, C_TIME, C_FROM_USER_ID, C_TO_USER_ID, C_CONTENT,C_FLAG
+              FROM MSG_HISTORY_TBL
+              WHERE (C_FROM_USER_ID=@USER_ID OR C_TO_USER_ID=@USER_ID) AND C_ID < @ID
+              ORDER BY C_ID DESC
+              LIMIT 20";
+
         public const string ADD_MESSAGE =
-            @"INSERT INTO MSG_HISTORY_TBL( C_ID, C_TYPE, C_TIME, C_FROM_USER_ID, C_TO_USER_ID, C_CONTENT) VALUES (
-                                    NULL, @C_TYPE, @C_TIME, @C_FROM_USER_ID, @C_TO_USER_ID, @C_CONTENT)";
-        
+            @"INSERT INTO MSG_HISTORY_TBL
+              (C_ID, C_TYPE, C_TIME, C_FROM_USER_ID, C_TO_USER_ID, C_CONTENT, C_FLAG)
+              VALUES
+              (NULL, @C_TYPE, @C_TIME, @C_FROM_USER_ID, @C_TO_USER_ID, @C_CONTENT, @C_FLAG)";
+
+        public const string UPDATE_MESSAGE_STATE =
+           @"UPDATE MSG_HISTORY_TBL
+             SET C_FLAG=@C_FLAG
+             WHERE C_ID=@C_ID";
     }
 }

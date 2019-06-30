@@ -70,12 +70,9 @@ namespace Com.LanIM.Store
             return true;
         }
 
-        internal DataTable Query(string sql)
+        internal DataTable Query(string sql, params SQLiteParameter[] parameters)
         {
-            SQLiteCommand cmd = _conn.CreateCommand();
-            cmd.CommandText = sql;
-            cmd.Connection = _conn;
-            cmd.CommandType = CommandType.Text;
+            SQLiteCommand cmd = CreateCommand(sql, parameters);
 
             SQLiteDataAdapter adpter = new SQLiteDataAdapter(cmd);
             DataTable dt = new DataTable();
@@ -83,7 +80,7 @@ namespace Com.LanIM.Store
             return dt;
         }
 
-        internal void ExecuteNoQuery(string sql, SQLiteParameter[] parameters = null)
+        private SQLiteCommand CreateCommand(string sql, SQLiteParameter[] parameters)
         {
             SQLiteCommand cmd = _conn.CreateCommand();
             cmd.CommandText = sql;
@@ -95,7 +92,44 @@ namespace Com.LanIM.Store
                 cmd.Parameters.AddRange(parameters);
             }
 
+            return cmd;
+        }
+
+        internal object ExecuteScalar(string sql, params SQLiteParameter[] parameters)
+        {
+            SQLiteCommand cmd = CreateCommand(sql, parameters);
+            object obj = cmd.ExecuteScalar();
+            if(obj is DBNull)
+            {
+                return null;
+            }
+            return obj;
+        }
+
+        internal void Delete(string sql, params SQLiteParameter[] parameters)
+        {
+            ExecuteNoQuery(sql, parameters);
+        }
+        internal void Update(string sql, params SQLiteParameter[] parameters)
+        {
+            ExecuteNoQuery(sql, parameters);
+        }
+        private void ExecuteNoQuery(string sql, params SQLiteParameter[] parameters)
+        {
+            SQLiteCommand cmd = CreateCommand(sql, parameters);
             cmd.ExecuteNonQuery();
+        }
+
+        /// <summary>
+        /// 插入返回最后一条记录ID
+        /// </summary>
+        /// <param name="sql"></param>
+        /// <param name="parameters"></param>
+        /// <returns></returns>
+        internal int Insert(string sql, params SQLiteParameter[] parameters)
+        {
+            SQLiteCommand cmd = CreateCommand(sql + ";select last_insert_rowid();", parameters);
+            return Convert.ToInt32(cmd.ExecuteScalar());
         }
     }
 }

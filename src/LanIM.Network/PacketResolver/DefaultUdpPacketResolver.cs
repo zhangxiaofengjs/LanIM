@@ -36,7 +36,8 @@ namespace Com.LanIM.Network.PacketsResolver
                 rdr.ReadInt16(); //skip packet.Type;
                 packet.ID = rdr.ReadInt64();
                 packet.Command = rdr.ReadUInt64();
-                packet.MAC = rdr.ReadString();
+                packet.FromMAC = rdr.ReadString();
+                packet.ToMAC = rdr.ReadString();
 
                 switch (packet.CMD)
                 {

@@ -6,7 +6,7 @@ using System.Windows.Forms;
 
 namespace Com.LanIM
 {
-	enum LanUserStatus
+    public enum LanUserStatus
 	{
         Online,
         Offline,

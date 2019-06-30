@@ -10,15 +10,21 @@ using System.Threading.Tasks;
 
 namespace Com.LanIM.Store
 {
-    public class ModelConvert<T>
+    class ModelConvert<T>
     {
-        public List<T> Convert(DataTable dt, params ColumnMapping[] mappings)
+        /// <summary>
+        /// 将数据表转换成对象T
+        /// </summary>
+        /// <param name="dt"></param>
+        /// <param name="mappings"></param>
+        /// <returns></returns>
+        public List<T> Convert(DataTable dt, IInstanceCreater<T> creater, params ColumnMapping[] mappings)
         {
             List<T> list = new List<T>();
 
             foreach (DataRow row in dt.Rows)
             {
-                T t = Activator.CreateInstance<T>();
+                T t = creater.CreateInstance(row);
                 Type type = t.GetType();
 
                 foreach (ColumnMapping mapping in mappings)

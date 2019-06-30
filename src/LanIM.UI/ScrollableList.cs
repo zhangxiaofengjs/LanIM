@@ -41,20 +41,52 @@ namespace Com.LanIM.UI
             }
             set
             {
+                if (this._offset == value)
+                {
+                    return;
+                }
+
                 if (this.ClientSize.Height >= this._totleItemHeight)
                 {
+                    //没有滚动条，无需offset
                     this._offset = 0;
                 }
                 else
                 {
                     //移动到第一个项目
                     this._offset = Math.Min(value, 0);
+                    if (this._offset == 0)
+                    {
+                        OnScrolledTop();
+                    }
                     //移动到最后一个项目，最多this.ClientSize.Height - this._totleItemHeight
                     this._offset = Math.Max(this._offset, this.ClientSize.Height - this._totleItemHeight);
+                    if (this._offset == this.ClientSize.Height - this._totleItemHeight)
+                    {
+                        OnScrolledBottom();
+                    }
                 }
-                //计算滑块位置
-                int handleOffset = -(int)(1.0 * this._offset * (this.ClientSize.Height - this._scrollBarHandleBounds.Height) / (this._totleItemHeight - this.ClientSize.Height));
-                this._scrollBarHandleBounds.Y = handleOffset;
+
+                ResetScrollHandlePos();
+            }
+        }
+
+        public ScrollableListItem TopItem
+        {
+            set
+            {
+                int height = 0;
+                for (int i = 0; i < this.Items.Count; i++)
+                {
+                    ScrollableListItem item = this.Items[i];
+
+                    if (item == value)
+                    {
+                        this.Offset = -height;
+                        break;
+                    }
+                        height += item.Height;
+                }
             }
         }
 
@@ -82,32 +114,20 @@ namespace Com.LanIM.UI
 
         [Browsable(false)]
         public ScrollableListItemCollection Items { get; }
-
-        private SortedList<int, ScrollableListItem> _selectedIndexes = new SortedList<int, ScrollableListItem>();
-
-        [Browsable(false)]
-        public ScrollableListItemCollection SelectedItems
-        {
-            get
-            {
-                 ScrollableListItemCollection selectedItems = new ScrollableListItemCollection();
-                selectedItems.AddRange(_selectedIndexes.Values);
-                return selectedItems;
-            }
-        }
-
         [Browsable(false)]
         public ScrollableListItem SelectedItem
         {
             get
             {
-                if(SelectedItems.Count != 0)
+                if(this.SelectedItems.Count == 0)
                 {
-                    return SelectedItems[0];
+                    return null;
                 }
-                return null;
+                return this.SelectedItems[0];
             }
         }
+        [Browsable(false)]
+        public ScrollableListItemCollection SelectedItems { get; } = new ScrollableListItemCollection();
 
         /// <summary>
         /// 是否多选
@@ -129,7 +149,10 @@ namespace Com.LanIM.UI
 
         public event MeasureItemEventHandler MeasureItem;
         public event ItemClickedEventHandler ItemClicked;
+        public event ItemHoverEventHandler ItemHover;
         public event EventHandler SelectionChanged;
+        public event EventHandler ScrolledTop;
+        public event EventHandler ScrolledBottom;
         
         public ScrollableList()
         {
@@ -212,7 +235,7 @@ namespace Com.LanIM.UI
                     //不在拖拽滑块，并且鼠标移动到上面就定为Focus
                     bool isFocus = (this.HighlightWithNoFocus || !this.HighlightWithNoFocus && this.Focused ) && 
                         !this._scrollBarHandleDrag && rect.Contains(PointToClient(MousePosition));
-                    DrawItemEventArgs args = new DrawItemEventArgs(i, item, g, rect, isFocus, _selectedIndexes.ContainsKey(i),
+                    DrawItemEventArgs args = new DrawItemEventArgs(i, item, g, rect, isFocus, item.Selected,
                         this.Font, this.ForeColor, this.BackColor);
                     OnDrawItem(args);
                 }
@@ -235,7 +258,7 @@ namespace Com.LanIM.UI
 
             //滚动条区域重绘
             this._mouseEnter = true;
-            this.Offset = this.Offset;
+            ResetScrollHandlePos();
             this.Invalidate();
         }
 
@@ -285,7 +308,6 @@ namespace Com.LanIM.UI
                 //鼠标按下时拖动，更新滑块偏移
                 this.Offset -= (int)(1.0 * (e.Y - this._scrollBarHandleDragMouseOffsetY) * this._totleItemHeight / this.ClientSize.Height);
                 this._scrollBarHandleDragMouseOffsetY = e.Y;
-                this.Invalidate();
             }
             else
             {
@@ -302,9 +324,24 @@ namespace Com.LanIM.UI
                 {
                     this._scrollBarHandleBrush = SCROLLBAR_HANDLE_BRUSH_NORMAL;
                 }
-                this.Invalidate();
             }
+
+            ItemInfo itemInfo = HitTest(e.Location);
+            if (itemInfo != null)
+            {
+                //触发Hover事件
+                ItemHoverEventArgs args = new ItemHoverEventArgs(itemInfo.Item, e.Location);
+                OnItemHover(args);
+            }
+
+            this.Invalidate();
         }
+
+        protected virtual void OnItemHover(ItemHoverEventArgs args)
+        {
+            this.ItemHover?.Invoke(this, args);
+        }
+
         protected override void OnMouseWheel(MouseEventArgs e)
         {
             base.OnMouseWheel(e);
@@ -324,13 +361,16 @@ namespace Com.LanIM.UI
                 return;
             }
 
+            ScrollableListItem item = itemInfo.Item;
+
             //设置选择状态
             bool bSelectChange = false;
-            if (this._selectedIndexes.ContainsKey(itemInfo.Index))
+            if (item.Selected)
             {
                 if (this.ToggleSelection)
                 {
-                    this._selectedIndexes.Remove(itemInfo.Index);
+                    item.Selected = false;
+                    this.SelectedItems.Remove(itemInfo.Item);
                     bSelectChange = true;
                 }
             }
@@ -339,14 +379,19 @@ namespace Com.LanIM.UI
                 if (!this.MultipleSelect)
                 {
                     //只能单选时
-                    this._selectedIndexes.Clear();
+                    foreach(ScrollableListItem i in this.SelectedItems)
+                    {
+                        i.Selected = false;
+                    }
+                    this.SelectedItems.Clear();
                 }
-                this._selectedIndexes.Add(itemInfo.Index, itemInfo.Item);
+                item.Selected = true;
+                this.SelectedItems.Add(item);
                 bSelectChange = true;
             }
 
             //触发点击事件
-            ItemClickedEventArgs args = new ItemClickedEventArgs(itemInfo.Item);
+            ItemClickedEventArgs args = new ItemClickedEventArgs(itemInfo.Item, e.Button, e.Location);
             OnItemClicked(args);
 
             if (bSelectChange)
@@ -391,6 +436,13 @@ namespace Com.LanIM.UI
         protected virtual void OnItemClicked(ItemClickedEventArgs args)
         {
             ItemClicked?.Invoke(this, args);
+        }
+
+        private void ResetScrollHandlePos()
+        {
+            //计算滑块位置
+            int handleOffset = -(int)(1.0 * this._offset * (this.ClientSize.Height - this._scrollBarHandleBounds.Height) / (this._totleItemHeight - this.ClientSize.Height));
+            this._scrollBarHandleBounds.Y = handleOffset;
         }
 
         //计算所有Item的大小
@@ -472,6 +524,21 @@ namespace Com.LanIM.UI
 
             //绘制所有
             this.Invalidate();
+        }
+
+        public void ScrollToBottom()
+        {
+            this.Offset = this.ClientSize.Height - this.TotleItemHeight;
+        }
+
+        protected virtual void OnScrolledTop()
+        {
+            ScrolledTop?.Invoke(this, new EventArgs());
+        }
+
+        protected virtual void OnScrolledBottom()
+        {
+            ScrolledBottom?.Invoke(this, new EventArgs());
         }
     }
 }

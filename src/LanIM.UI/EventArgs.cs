@@ -71,10 +71,26 @@ namespace Com.LanIM.UI
     public class ItemClickedEventArgs
     {
         public ScrollableListItem Item { get; }
+        public MouseButtons Button { get; }
+        public Point Location { get; }
 
-        public ItemClickedEventArgs(ScrollableListItem item)
+        public ItemClickedEventArgs(ScrollableListItem item, MouseButtons button, Point loc)
         {
             this.Item = item;
+            this.Button = button;
+            this.Location = loc;
+        }
+    }
+
+    public class ItemHoverEventArgs
+    {
+        public ScrollableListItem Item { get; }
+        public Point Location { get; }
+
+        public ItemHoverEventArgs(ScrollableListItem item, Point loc)
+        {
+            this.Item = item;
+            this.Location = loc;
         }
     }
 }

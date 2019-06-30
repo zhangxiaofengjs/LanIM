@@ -12,16 +12,48 @@ namespace Com.LanIM.Components
 {
     class MessageListItem : ScrollableListItem
     {
+        internal enum DrawingObjectType
+        {
+            ProfilePhoto,
+            Title,
+            MessageArea,
+        }
+
+        internal class DrawingObject
+        {
+            public DrawingObjectType Type { get; }
+            public Rectangle Bounds { get; set; }
+            public int Offset { get; set; }
+            public DrawingObject(DrawingObjectType type)
+            {
+                this.Type = type;
+            }
+        }
+
+        public enum MessageState
+        {
+            Sending,
+            SendSuccess,
+            SendError,
+            Received,
+        }
+
+        public long ID { get; set; }
         public Message Message { get; set; }
         public LanUser User { get; set; }
+        public MessageState State { get; set; }
 
-        //public List<Rectangle> DrawingObjects = new List<Rectangle>();
+        internal List<DrawingObject> DrawingObjects = new List<DrawingObject>();
 
         public MessageListItem()
         {
             //追加描绘部件
-            //this.DrawingObjects.Add(new Rectangle(MARGIN, MARGIN, ICON_WIDTH, ICON_WIDTH));
-            //this.DrawingObjects.Add(new Rectangle(MARGIN, 0, ICON_WIDTH, ICON_WIDTH));
+            //头像
+            this.DrawingObjects.Add(new DrawingObject(DrawingObjectType.ProfilePhoto));
+            //标题
+            this.DrawingObjects.Add(new DrawingObject(DrawingObjectType.Title));
+            //消息区
+            this.DrawingObjects.Add(new DrawingObject(DrawingObjectType.MessageArea));
         }
 
         public override string ToString()

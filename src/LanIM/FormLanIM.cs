@@ -62,16 +62,19 @@ namespace Com.LanIM
             _user.TextMessageReceived += _user_TextMessageReceived;
             _user.ImageReceived += _user_ImageReceived;
             _user.FileTransportRequested += _user_FileTransportRequested;
-            _user.FileReceiveProgressChanged += _user_FileTransportProgressChanged;
+            _user.FileReceiveProgressChanged += _user_FileReceiveProgressChanged;
+            _user.FileReceiveCompleted += _user_FileReceiveCompleted;
+            _user.FileReceiveError += _user_FileReceiveError;
             _user.FileSendProgressChanged += _user_FileSendProgressChanged;
-
+            _user.FileSendCompleted += _user_FileSendCompleted;
+            _user.FileSendError += _user_FileSendError;
             LoadContacters();
         }
 
         private void LoadContacters()
         {
             ContacterMapper mapper = new ContacterMapper();
-            List<Contacter> cs = mapper.QueryList();
+            List<Contacter> cs = mapper.Query();
 
             foreach (Contacter contacter in cs)
             {
@@ -109,6 +112,25 @@ namespace Com.LanIM
             }, null);
         }
 
+        private void _user_FileReceiveError(object sender, FileTransportErrorEventArgs args)
+        {
+        }
+
+        private void _user_FileSendError(object sender, FileTransportErrorEventArgs args)
+        {
+        }
+
+        private void _user_FileSendCompleted(object sender, FileTransportEventArgs args)
+        {
+
+        }
+
+        private void _user_FileReceiveCompleted(object sender, FileTransportEventArgs args)
+        {
+            UserChatControl ucc = GetUserChatControl(_user[args.File.MAC]);
+            ucc.AddFileMessage(args.File.SavePath);
+        }
+
         private void _user_FileSendProgressChanged(object sender, FileTransportEventArgs args)
         {
             TransportFile file = args.File;
@@ -118,7 +140,7 @@ namespace Com.LanIM
             //    LanFile.HumanReadbleLen(file.TransportedSpeed) + "/s");
         }
 
-        private void _user_FileTransportProgressChanged(object sender, FileTransportEventArgs args)
+        private void _user_FileReceiveProgressChanged(object sender, FileTransportEventArgs args)
         {
             TransportFile file = args.File;
             //OutputLog("接收文件[" + file.File.Name + "]," + file.Progress + "%," +
@@ -149,12 +171,15 @@ namespace Com.LanIM
         private void _user_TextMessageReceived(object sender, TextMessageReceivedEventArgs args)
         {
             UserChatControl ucc = GetUserChatControl(args.User);
-            ucc.AddTextMessage(args.Message);
+            ucc.AddTextMessage(args.ID, args.Message);
         }
 
         private void _user_Send(object sender, SendEventArgs args)
         {
-            //OutputLog("发送: success=" + args.Success + ", packet=" + args.Packet);
+            LanUser user = _user[args.Packet.ToMAC];
+            UserChatControl ucc = GetUserChatControl(user);
+
+            ucc.SetMessageSendResult(args.Packet.ID, args.Success);
         }
 
         private void _user_UserStateChange(object sender, UserStateChangeEventArgs args)
@@ -239,6 +264,7 @@ namespace Com.LanIM
                 ucc.Anchor = AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Right | AnchorStyles.Bottom;
                 ucc.User = _user;
                 ucc.Contacter = user;
+                ucc.InitializeLatastMessage();
                 this.Controls.Add(ucc);
             }
 

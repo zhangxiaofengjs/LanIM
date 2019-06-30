@@ -35,16 +35,17 @@ namespace Com.LanIM.Network.Packets
             }
         }
 
-        public IPAddress Remote { get; set; }
+        public IPAddress Address { get; set; }
         public int Port { get; set; }
-
+        public string ToMAC { get; set; }
         public long ID { get; set; }
         public ulong Command { get; set; }
         public ulong CMD { get { return CMD_MASK & Command; } }
-        public string MAC { get; set; }
+        public string FromMAC { get; set; }
 
         public UdpPacket()
         {
+            this.ToMAC = string.Empty;
         }
 
         //是否检测发包失败
@@ -65,13 +66,14 @@ namespace Com.LanIM.Network.Packets
 
         public override string ToString()
         {
-            string str = string.Format("{{remote={0}, port={1}, ver={2}, id={3}, command={4}, mac={5}, extend={6}}}",
-                    Remote,
+            string str = string.Format("{{to=[{0}][{1}][{2}], from=[{3}],  ver={4}, id={5}, command={6}, extend={7}}}",
+                    Address,
                     Port,
+                    ToMAC,
+                    FromMAC,
                     Version,
                     ID,
                     Command,
-                    MAC,
                     Extend);
             return str;
         }

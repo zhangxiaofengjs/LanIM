@@ -71,6 +71,8 @@
             this.messageListBox.Name = "messageListBox";
             this.messageListBox.Size = new System.Drawing.Size(777, 427);
             this.messageListBox.TabIndex = 3;
+            this.messageListBox.ScrolledTop += MessageListBox_ScrolledTop;
+            this.messageListBox.ScrolledBottom += MessageListBox_ScrolledBottom;
             // 
             // commonToolBar
             // 

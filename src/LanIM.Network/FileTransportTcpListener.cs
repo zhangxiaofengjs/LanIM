@@ -7,6 +7,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.MemoryMappedFiles;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -187,6 +188,9 @@ namespace Com.LanIM.Network
             try
             {
                 fs = new FileStream(lanFile.Path, FileMode.Open, FileAccess.Read);
+                //TODO 对于大文件用MemoryMappedFile提高速度,但是对这个类用法不是很清楚，效率也未做实验，暂时不对应
+                //MemoryMappedFile f1s = MemoryMappedFile.CreateFromFile(fs, FileMode.Open, "", 1024, MemoryMappedFileAccess.Read);
+                //f1s.CreateViewStream
             }
             catch (Exception e)
             {

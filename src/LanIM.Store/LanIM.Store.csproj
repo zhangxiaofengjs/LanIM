@@ -84,9 +84,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ColumnMapping.cs" />
+    <Compile Include="InstanceCreater.cs" />
     <Compile Include="MessageHistoryMapper.cs" />
     <Compile Include="ModelConvert.cs" />
     <Compile Include="Models\ImageMessage.cs" />
+    <Compile Include="Models\IPost.cs" />
     <Compile Include="Models\IPrepare.cs" />
     <Compile Include="Sql.cs" />
     <Compile Include="ContacterMapper.cs" />

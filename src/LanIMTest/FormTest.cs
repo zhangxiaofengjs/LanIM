@@ -4,7 +4,6 @@ using Com.LanIM.Common.Security;
 using Com.LanIM.Network;
 using Com.LanIM.Network.Packets;
 using Com.LanIM;
-using Com.LanIM.Components;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -25,16 +24,13 @@ using Com.LanIM.UI;
 
 namespace Com.LanIM
 {
-    partial class FormIPMsgTest : CommonForm
+    partial class FormTest : CommonForm
     {
         LanUser _user = null;
 
-        public FormIPMsgTest()
+        public FormTest()
         {
             InitializeComponent();
-
-            pictureBox2.Image = Image.FromFile("min.png");
-            pictureBox1.Image = Image.FromFile("max.jpg");
         }
 
         private void button1_Click(object sender, System.EventArgs e)
@@ -241,6 +237,12 @@ namespace Com.LanIM
             {
                 scrollableUserControl1.Items.Add(new ScrollableListItem());
             }
+        }
+
+        private void scrollableUserControl1_Paint(object sender, PaintEventArgs e)
+        {
+            Trace.WriteLine("111");
+            scrollableUserControl1.Cursor = Cursors.Hand;
         }
     }
 }

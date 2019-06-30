@@ -11,4 +11,7 @@ src/LanIM.Common/obj
 src/LanIM.Common/bin
 src/LanIM.Store/obj
 src/LanIM.Store/bin
+src/LanIMTest/obj
+src/LanIMTest/bin
 src/ipmsg/ipmsg
+doc
