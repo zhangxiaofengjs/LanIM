@@ -9,9 +9,10 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Com.LanIM.Store</RootNamespace>
     <AssemblyName>store</AssemblyName>
-    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
     <DebugSymbols>true</DebugSymbols>
@@ -75,6 +76,7 @@
       <HintPath>libs\x86\System.Data.SQLite.dll</HintPath>
     </Reference>
     <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -87,9 +89,15 @@
     <Compile Include="InstanceCreater.cs" />
     <Compile Include="MessageHistoryMapper.cs" />
     <Compile Include="ModelConvert.cs" />
+    <Compile Include="Models\FileMessage.cs" />
     <Compile Include="Models\ImageMessage.cs" />
     <Compile Include="Models\IPost.cs" />
     <Compile Include="Models\IPrepare.cs" />
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
     <Compile Include="Sql.cs" />
     <Compile Include="ContacterMapper.cs" />
     <Compile Include="Models\Contacter.cs" />
@@ -103,6 +111,15 @@
       <Project>{6B680983-64BE-480A-9B53-6690B42A934D}</Project>
       <Name>LanIM.Common</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\broken_picture.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

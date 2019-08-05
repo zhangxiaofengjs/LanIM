@@ -15,6 +15,8 @@ namespace Com.LanIM.Store.Models
         public string NickName { get; set; }
         public string MAC { get; set; }
         public string IP { get; set; }
+        public int Port { get; set; }
+        public string Memo { get; set; }
         public Image ProfilePhoto {
             get
             {

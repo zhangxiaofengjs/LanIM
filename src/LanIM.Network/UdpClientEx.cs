@@ -2,8 +2,8 @@
 using Com.LanIM.Common.Logger;
 using Com.LanIM.Common.Security;
 using Com.LanIM.Network.Packets;
-using Com.LanIM.Network.PacketsEncoder;
-using Com.LanIM.Network.PacketsResolver;
+using Com.LanIM.Network.PacketEncoder;
+using Com.LanIM.Network.PacketResolver;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -18,20 +18,32 @@ namespace Com.LanIM.Network
 {
     public class UdpClientEx
     {
+        enum ClientState
+        {
+            Waiting,
+            Working,
+            Closing,
+            Closed,
+        }
+
         public const int DEFAULT_PORT = 2425;
         public const int DEFAULT_RECEIVE_BUF_SIZE = 1024 * 64;//16k
         private const int SEND_RESPONSE_CHECK_DELAY = 5000;
-        public const int UDP_MAX_BUF_SIZE = 59392;//本来是65507，考虑到有些余量定为58k
+        //public const int UDP_MAX_BUF_SIZE = 59392;//本来是65507，考虑到有些余量定为58k
+        public const int UDP_MAX_BUF_SIZE = 1400;//跨网的时候根据测试设定大于1472字节不能正常传输TODO分片发送
 
         private UdpClient _client;
+        private ClientState _state;
         public int SendResponseCheckDelay { get; set; }
         public int Port { get; set; }
+        public IPAddress IP { get; set; }
 
         public SecurityKeys SecurityKeys { get; set; }
 
         private TaskFactory _taskFactory = new TaskFactory();
         private BlockingCollection<UdpPacket> _receivedPackets = new BlockingCollection<UdpPacket>();
         private ConcurrentDictionary<long, UdpPacket> _sendingPacketDic = new ConcurrentDictionary<long, UdpPacket>();
+        private ConcurrentDictionary<long, MultiUdpPacket> _recvingPacketDic = new ConcurrentDictionary<long, MultiUdpPacket>();
 
         public event UdpClientReceiveEventHandler ReceivePacket;
         public event UdpClientSendEventHandler SendPacket;
@@ -45,6 +57,7 @@ namespace Com.LanIM.Network
             this.Port = DEFAULT_PORT;
             this.SendResponseCheckDelay = SEND_RESPONSE_CHECK_DELAY;
             this._context = context;
+            this._state = ClientState.Waiting;
         }
 
         public void Close()
@@ -53,12 +66,14 @@ namespace Com.LanIM.Network
             {
                 LoggerFactory.Debug("closing");
 
+                this._state = ClientState.Closing;
                 if (_client != null)
                 {
                     _client.Close();
                     _client.Dispose();
                 }
 
+                this._state = ClientState.Closed;
                 LoggerFactory.Debug("closed");
             }
             catch (Exception e)
@@ -77,7 +92,7 @@ namespace Com.LanIM.Network
             {
                 LoggerFactory.Debug("listen prepare");
 
-                IPEndPoint localIpEp = new IPEndPoint(IPAddress.Any, Port);
+                IPEndPoint localIpEp = new IPEndPoint(IP, Port);
                 _client = new UdpClient(localIpEp)
                 {
                     EnableBroadcast = true
@@ -87,6 +102,9 @@ namespace Com.LanIM.Network
 
                 //开始接受消息
                 _client.BeginReceive(AsyncReceiveHandler, null);
+
+                this._state = ClientState.Working;
+
                 LoggerFactory.Debug("begin receive");
 
                 //由于UI处理时间比较长，开启收包处理任务
@@ -105,6 +123,8 @@ namespace Com.LanIM.Network
 
         private void AsyncReceiveHandler(IAsyncResult ar)
         {
+            bool isExiting = false;
+
             if (ar.IsCompleted)
             {
                 byte[] buff = null;
@@ -132,6 +152,14 @@ namespace Com.LanIM.Network
                         LoggerFactory.Debug("resolved packet:{0}", packet);
 
                         OnPackageReceived(packet);
+
+                        if(packet.Type == Packet.PACKTE_TYPE_UDP &&
+                            packet.CMD == UdpPacket.CMD_EXIT &&
+                            packet.Address.Equals(this.IP))
+                        {
+                            //如果是当前用户发出退出请求，下一步则不监听了
+                            isExiting = true;
+                        }
                     }
                     catch (Exception e)
                     {
@@ -140,21 +168,62 @@ namespace Com.LanIM.Network
                 }
             }
 
-            try
+            if (isExiting || 
+                this._state == ClientState.Closing ||
+                this._state == ClientState.Closed)
             {
-                //继续下一次收包
-                _client.BeginReceive(AsyncReceiveHandler, null);
-                LoggerFactory.Debug("begin receive");
+                //正在准备退出
             }
-            catch (Exception e)
-            {
-                OnError(Errors.OutofSizePacket, "接受消息停止,需要重新监听....", e);
+            else
+            { 
+                try
+                {
+                    //继续下一次收包
+                    _client.BeginReceive(AsyncReceiveHandler, null);
+                    LoggerFactory.Debug("begin receive");
+                }
+                catch (Exception e)
+                {
+                    OnError(Errors.OutofSizePacket, "接受消息停止,需要重新监听....", e);
+                }
             }
         }
 
         protected void OnPackageReceived(UdpPacket packet)
         {
-            _receivedPackets.Add(packet);
+            if (packet.Type == Packet.PACKTE_TYPE_MULTI_UDP)
+            {
+                MultiUdpPacket mp = packet as MultiUdpPacket;
+                if(!_recvingPacketDic.TryGetValue(mp.ParentID, out MultiUdpPacket parentMp))
+                {
+                    parentMp = new MultiUdpPacket(mp.TotalLength);
+                    parentMp.ID = mp.ParentID;
+                    parentMp.Address = packet.Address;
+                    parentMp.Port = packet.Port;
+
+                    _recvingPacketDic.TryAdd(mp.ParentID, parentMp);
+                }
+                parentMp.CopyFragmentBuff(mp);
+
+                if(parentMp.TotalLength == parentMp.Length)
+                {
+                    //收取中缓存移除，添加到已经接受的包中
+                    _recvingPacketDic.TryRemove(mp.ParentID, out MultiUdpPacket pMp);
+
+                    IPacketResolver resolver = PacketResolverFactory.CreateResolver(pMp.FragmentBuff, 0, pMp.TotalLength, this.SecurityKeys.Private);
+                    LoggerFactory.Debug("get resolver:{0}", resolver.GetType().Name);
+
+                    UdpPacket udpPacket = resolver.Resolve() as UdpPacket;
+                    udpPacket.Address = packet.Address;
+                    udpPacket.Port = packet.Port;
+
+                    _receivedPackets.Add(udpPacket);
+                }
+            }
+            else
+            {
+                _receivedPackets.Add(packet);
+            }
         }
 
         private void StartReceiveTask()
@@ -185,8 +254,18 @@ namespace Com.LanIM.Network
         #endregion
 
         #region Send
+        struct SendState
+        {
+            public bool LastPacket;
+            public UdpPacket Packet;
+        }
         public void Send(UdpPacket packet)
         {
+            if (this._state != ClientState.Working)
+            {
+                return;
+            }
+
             //异步发送
             IPEndPoint remoteIpEp = new IPEndPoint(packet.Address, packet.Port);
 
@@ -194,34 +273,50 @@ namespace Com.LanIM.Network
 
             LoggerFactory.Debug("parepare send packet:{0}", packet);
 
-            byte[] buf = null;
+            EncodeResult result = null;
             try
             {
                 IPacketEncoder encoder = PacketEncoderFactory.CreateEncoder(packet);
                 LoggerFactory.Debug("get encoder:{0}", encoder.GetType().Name);
 
-                buf = encoder.Encode();
-                LoggerFactory.Debug("encode packet:{0}", buf);
+                result = encoder.Encode(null);
+                LoggerFactory.Debug("encode packet:{0}", result);
+
+                if (result.Length > UDP_MAX_BUF_SIZE)
+                {
+                    //超过大小的分包处理
+                    MultiUdpPacket mpacket = new MultiUdpPacket(result.Fragments[0]);
+                    mpacket.ID = packet.ID;
+                    mpacket.ParentID = packet.ID;
+
+                    encoder = PacketEncoderFactory.CreateEncoder(mpacket);
+                    LoggerFactory.Debug("get encoder:{0}", encoder.GetType().Name);
+
+                    result = encoder.Encode(UDP_MAX_BUF_SIZE - MultiUdpPacket.HEAD_SIZE);
+                    LoggerFactory.Debug("encode packet:{0}", result);
+                }
             }
             catch (Exception e)
             {
+                OnSendPackage(packet, false);
                 OnError(Errors.EncodeError, "加密包错误。", e);
             }
 
             try
             {
-                if (buf.Length < UDP_MAX_BUF_SIZE)
+                for (int i = 0; i < result.Fragments.Count; i++)
                 {
-                    _client.BeginSend(buf, buf.Length, remoteIpEp, new AsyncCallback(AsyncSendHandler), packet);
-                }
-                else
-                {
-                    //超过大小的，分包？转TCP？
-                    OnError(Errors.OutofSizePacket, "包超过大小。", null);
+                    byte[] buf = result.Fragments[i];
+                    SendState state = new SendState();
+                    state.LastPacket = i == result.Fragments.Count - 1;
+                    state.Packet = packet;
+                    _client.BeginSend(buf, buf.Length, remoteIpEp, new AsyncCallback(AsyncSendHandler), state);
+                    Thread.Sleep(20);//稍微等待一下，避免丢包
                 }
             }
             catch (Exception e)
             {
+                OnSendPackage(packet, false);
                 OnError(Errors.NetworkError, "发送包错误。", e);
             }
         }
@@ -241,24 +336,29 @@ namespace Com.LanIM.Network
                     OnError(Errors.NetworkError, "发送包失败。", e);
                 }
 
-                UdpPacket packet = ar.AsyncState as UdpPacket;
-                if (packet.CheckSendResponse)
+                SendState state = (SendState)ar.AsyncState;
+                if (state.LastPacket)
                 {
-                    // 添加到正在发送包一览，随后启动定时器检测有无返回结果
-                    LoggerFactory.Debug("add to check response:id={0}", packet.ID);
-
-                    if (!_sendingPacketDic.TryAdd(packet.ID, packet))
+                    //最后一个包发完开始检测结果
+                    UdpPacket packet = state.Packet;
+                    if (packet.CheckSendResponse)
                     {
-                        //应该不会到这里来
-                        OnError(Errors.Unknow, "未想定异常：AsyncSendHandler", null);
-                    }
+                        // 添加到正在发送包一览，随后启动定时器检测有无返回结果
+                        LoggerFactory.Debug("add to check response:id={0}", packet.ID);
 
-                    WaitTimer.Start(this.SendResponseCheckDelay, SendResultCheckHandler, packet);
-                }
-                else
-                {
-                    //对于不需要确认的直接认为发送完毕
-                    OnSendPackage(packet, true);
+                        if (!_sendingPacketDic.TryAdd(packet.ID, packet))
+                        {
+                            //应该不会到这里来
+                            OnError(Errors.Unknow, "未想定异常：AsyncSendHandler", null);
+                        }
+
+                        WaitTimer.Start(this.SendResponseCheckDelay, SendResultCheckHandler, packet);
+                    }
+                    else
+                    {
+                        //对于不需要确认的直接认为发送完毕
+                        OnSendPackage(packet, true);
+                    }
                 }
             }
         }

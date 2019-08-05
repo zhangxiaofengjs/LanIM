@@ -7,10 +7,10 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Com.LanIM.Network.PacketsEncoder
+namespace Com.LanIM.Network.PacketEncoder
 {
     public interface IPacketEncoder
     {
-        byte[] Encode();
+        EncodeResult Encode(object args);
     }
 }

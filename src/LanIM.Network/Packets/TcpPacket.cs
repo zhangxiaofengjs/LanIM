@@ -15,7 +15,7 @@ namespace Com.LanIM.Network.Packets
         public const ulong CMD_NONE = 0x00000000; //无操作命令
         public const ulong CMD_REQUEST_FILE_TRANSPORT = 0x00000001; //要求传输文件
 
-        public override short Type
+        public override byte Type
         {
             get
             {

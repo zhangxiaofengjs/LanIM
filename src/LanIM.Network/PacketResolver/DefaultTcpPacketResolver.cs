@@ -11,7 +11,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Com.LanIM.Network.PacketsResolver
+namespace Com.LanIM.Network.PacketResolver
 {
     public class DefaultTcpPacketResolver : IPacketResolver
     {
@@ -32,7 +32,7 @@ namespace Com.LanIM.Network.PacketsResolver
 
                 TcpPacket packet = new TcpPacket();
                 packet.Version = rdr.ReadInt16();
-                rdr.ReadInt16();//skip packet.Type
+                /*packet.Type = */rdr.ReadByte();//skip packet.Type
                 packet.Command = rdr.ReadUInt64();
 
                 switch (packet.CMD)

@@ -8,10 +8,11 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Com.LanIM.UI</RootNamespace>
     <AssemblyName>ui</AssemblyName>
-    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Deterministic>true</Deterministic>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
     <DebugSymbols>true</DebugSymbols>
@@ -91,6 +92,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Borders.cs" />
+    <Compile Include="BrushPool.cs" />
+    <Compile Include="CommonContextMenuRender.cs" />
     <Compile Include="CommonForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -100,9 +103,17 @@
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="CommonToolBarItemCollection.cs" />
+    <Compile Include="DropDownUserControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="FileIconPool.cs" />
+    <Compile Include="DropDownControl.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="ProfilePhotoPictureBox.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="ProfilePhotoPool.cs" />
     <Compile Include="SearchBox.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -117,6 +128,9 @@
     <Compile Include="ScrollableList.cs">
       <SubType>UserControl</SubType>
     </Compile>
+    <Compile Include="StringMeasurer.cs" />
+    <Compile Include="WindowsAPI.cs" />
+    <Compile Include="WindowsConstants.cs" />
     <EmbeddedResource Include="SearchBox.resx">
       <DependentUpon>SearchBox.cs</DependentUpon>
     </EmbeddedResource>
@@ -144,10 +158,6 @@
     <ProjectReference Include="..\LanIM.Common\LanIM.Common.csproj">
       <Project>{6B680983-64BE-480A-9B53-6690B42A934D}</Project>
       <Name>LanIM.Common</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\LanIM.Network\LanIM.Network.csproj">
-      <Project>{8c146b81-4a5e-42b7-a464-b4aaea624ab1}</Project>
-      <Name>LanIM.Network</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
@@ -186,6 +196,9 @@
   <ItemGroup>
     <None Include="Resources\normal_press.png" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <None Include="Resources\default_photo.png" />
+    <Content Include="Resources\file.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

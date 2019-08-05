@@ -89,6 +89,11 @@ namespace Com.LanIM.Store.Models
             {
                 LoggerFactory.Error("xml 转换失败:{0}\n{1}", this.Content, e);
             }
+
+            if(this.Image == null)
+            {
+                this.Image = Properties.Resources.broken_picture;
+            }
         }
     }
 }

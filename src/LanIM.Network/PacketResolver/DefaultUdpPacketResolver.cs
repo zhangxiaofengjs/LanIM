@@ -12,7 +12,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Com.LanIM.Network.PacketsResolver
+namespace Com.LanIM.Network.PacketResolver
 {
     public class DefaultUdpPacketResolver : IPacketResolver
     {
@@ -31,60 +31,93 @@ namespace Com.LanIM.Network.PacketsResolver
             {
                 BinaryReader rdr = new BinaryReader(ms, Packet.ENCODING);
 
-                UdpPacket packet = new UdpPacket();
-                packet.Version = rdr.ReadInt16();
-                rdr.ReadInt16(); //skip packet.Type;
-                packet.ID = rdr.ReadInt64();
-                packet.Command = rdr.ReadUInt64();
-                packet.FromMAC = rdr.ReadString();
-                packet.ToMAC = rdr.ReadString();
+                short version = rdr.ReadInt16();
+                byte type = rdr.ReadByte(); //skip packet.Type;
+                long id = rdr.ReadInt64();
 
-                switch (packet.CMD)
+                UdpPacket packet = null;
+                if (type == Packet.PACKTE_TYPE_MULTI_UDP)
                 {
-                    case UdpPacket.CMD_ENTRY:
-                        packet.Extend = ResolveEntryExtend(rdr);
-                        break;
-                    case UdpPacket.CMD_SEND_TEXT:
-                        packet.Extend = ResolveTextExtend(rdr, this._securityKey);
-                        break;
-                    case UdpPacket.CMD_SEND_IMAGE:
-                        packet.Extend = ResolveImageExtend(rdr, this._securityKey);
-                        break;
-                    case UdpPacket.CMD_SEND_FILE_REQUEST:
-                        packet.Extend = ResolveSendFileRequestExtend(rdr, this._securityKey);
-                        break;
-                    case UdpPacket.CMD_RESPONSE:
-                        packet.Extend = ResolveResponseExtend(rdr);
-                        break;
-                    case UdpPacket.CMD_STATE:
-                        packet.Extend = ResolveEntryExtend(rdr);
-                        break;
-                    default:
-                        break;
+                    //分别看下是否复合UDP分包
+                    MultiUdpPacket packetm = new MultiUdpPacket();
+                    packetm.Version = version;
+                    packetm.ID = id;
+                    packetm.ParentID = rdr.ReadInt64();
+                    packetm.TotalLength = rdr.ReadInt32();
+                    packetm.Position = rdr.ReadInt32();
+                    packetm.Length = rdr.ReadInt32();
+                    packetm.FragmentBuff  = rdr.ReadBytes(packetm.Length);
+
+                    packet = packetm;
+                }
+                else
+                {
+                    packet = new UdpPacket();
+                    packet.Version = version;
+                    packet.ID = id;
+                    packet.Command = rdr.ReadUInt64();
+                    packet.FromMAC = rdr.ReadString();
+                    packet.ToMAC = rdr.ReadString();
+
+                    switch (packet.CMD)
+                    {
+                        case UdpPacket.CMD_ENTRY:
+                            packet.Extend = ResolveEntryExtend(rdr, packet.Command);
+                            break;
+                        case UdpPacket.CMD_SEND_TEXT:
+                            packet.Extend = ResolveTextExtend(rdr, this._securityKey);
+                            break;
+                        case UdpPacket.CMD_SEND_IMAGE:
+                            packet.Extend = ResolveImageExtend(rdr, this._securityKey);
+                            break;
+                        case UdpPacket.CMD_SEND_FILE_REQUEST:
+                            packet.Extend = ResolveSendFileRequestExtend(rdr, this._securityKey);
+                            break;
+                        case UdpPacket.CMD_RESPONSE:
+                            packet.Extend = ResolveResponseExtend(rdr);
+                            break;
+                        case UdpPacket.CMD_STATE:
+                            packet.Extend = ResolveEntryExtend(rdr, packet.Command);
+                            break;
+                        default:
+                            break;
+                    }
                 }
 
                 return packet;
             }
         }
 
-        private static UdpPacketEntryExtend ResolveEntryExtend(BinaryReader rdr)
+        private static UdpPacketStateExtend ResolveEntryExtend(BinaryReader rdr, ulong command)
         {
-            UdpPacketEntryExtend extend = new UdpPacketEntryExtend();
-            int len = rdr.ReadInt32();
-            extend.PublicKey = rdr.ReadBytes(len);
+            UdpPacketStateExtend extend = new UdpPacketStateExtend();
 
-            extend.NickName = rdr.ReadString();
-            extend.HideState = rdr.ReadBoolean();
-
-            len = rdr.ReadInt32();
-            if(len != 0)
+            if ((command & UdpPacket.CMD_OPTION_STATE_PUBKEY) != 0)
             {
-                byte[] buf = rdr.ReadBytes(len);
-                using (MemoryStream ms = new MemoryStream(buf))
+                int len = rdr.ReadInt32();
+                extend.PublicKey = rdr.ReadBytes(len);
+            }
+            if ((command & UdpPacket.CMD_OPTION_STATE_NICKNAME) != 0)
+            {
+                extend.NickName = rdr.ReadString();
+            }
+            if ((command & UdpPacket.CMD_OPTION_STATE_STATUS) != 0)
+            {
+                extend.Status = (UserStatus)rdr.ReadInt32();
+            }
+            if ((command & UdpPacket.CMD_OPTION_STATE_PROFILE_PHOTO) != 0)
+            {
+                int len = rdr.ReadInt32();
+                if (len != 0)
                 {
-                    extend.ProfilePhoto = Image.FromStream(ms);
+                    byte[] buf = rdr.ReadBytes(len);
+                    using (MemoryStream ms = new MemoryStream(buf))
+                    {
+                        extend.ProfilePhoto = Image.FromStream(ms);
+                    }
                 }
             }
+
             return extend;
         }
 

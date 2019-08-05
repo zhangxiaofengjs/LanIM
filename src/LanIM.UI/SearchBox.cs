@@ -12,9 +12,18 @@ namespace Com.LanIM.UI
 {
     public partial class SearchBox : UserControl
     {
+        public event SearchEventHandler SearchTextChanged;
         public SearchBox()
         {
             InitializeComponent();
+        }
+
+        private void filterTextBox_TextChanged(object sender, EventArgs e)
+        {
+            SearchEventArgs se = new SearchEventArgs(filterTextBox.Text);
+            SearchTextChanged(this, se);
+            
+            
         }
     }
 }

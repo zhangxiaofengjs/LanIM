@@ -9,12 +9,17 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Com.LanIM.Network.PacketsResolver
+namespace Com.LanIM.Network.PacketResolver
 {
     public class PacketResolverFactory
     {
         public static IPacketResolver CreateResolver(byte[] datagram, int startIndex, int length, byte[] securityKey)
         {
+            if(datagram == null || datagram.Length < 2)
+            {
+                throw new Exception("创建包解码器失败，未知包类型。");
+            }
+
             if (datagram[0] == 49)
             {
                 short version = BitConverter.ToInt16(datagram, 0);
@@ -25,9 +30,10 @@ namespace Com.LanIM.Network.PacketsResolver
                 }
             }
 
-            short type = BitConverter.ToInt16(datagram, 2);
+            byte type = datagram[2];
 
-            if (type == Packet.PACKTE_TYPE_UDP)
+            if (type == Packet.PACKTE_TYPE_UDP ||
+                type == Packet.PACKTE_TYPE_MULTI_UDP)
             {
                 return new DefaultUdpPacketResolver(datagram, securityKey);
             }

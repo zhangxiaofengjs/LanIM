@@ -15,13 +15,6 @@ namespace Com.LanIM.UI
     {
         private static readonly Pen BORDER_PEN = new Pen(Color.FromArgb(214, 214, 214));
 
-        class ItemInfo
-        {
-            public int Index = -1;
-            public Rectangle Bounds = Rectangle.Empty;
-            public ScrollableListItem Item = null;
-        }
-
         private const int SCROLLBAR_WIDTH = 8;
         private const int MIN_SCROLLBAR_HEIGHT = (int)(SCROLLBAR_WIDTH * 1.5);
         private const int DEFAULT_MOUSE_WHEEL_OFFSET = 20;
@@ -68,24 +61,23 @@ namespace Com.LanIM.UI
                 }
 
                 ResetScrollHandlePos();
+                ResetItemsBounds();
             }
         }
-
+                
         public ScrollableListItem TopItem
         {
             set
             {
-                int height = 0;
                 for (int i = 0; i < this.Items.Count; i++)
                 {
                     ScrollableListItem item = this.Items[i];
 
                     if (item == value)
                     {
-                        this.Offset = -height;
+                        this.Offset = item.Y;
                         break;
                     }
-                        height += item.Height;
                 }
             }
         }
@@ -222,24 +214,21 @@ namespace Com.LanIM.UI
 
         protected virtual void OnDrawItems(Graphics g, Rectangle clipRect)
         {
-            int height = 0;
             for (int i = 0; i < this.Items.Count; i++)
             {
                 ScrollableListItem item = this.Items[i];
 
                 Rectangle rect = item.Bounds;
-                rect.Y = height + _offset;
 
                 if (rect.IntersectsWith(clipRect))
                 {
                     //不在拖拽滑块，并且鼠标移动到上面就定为Focus
                     bool isFocus = (this.HighlightWithNoFocus || !this.HighlightWithNoFocus && this.Focused ) && 
                         !this._scrollBarHandleDrag && rect.Contains(PointToClient(MousePosition));
-                    DrawItemEventArgs args = new DrawItemEventArgs(i, item, g, rect, isFocus, item.Selected,
+                    DrawItemEventArgs args = new DrawItemEventArgs(item, g, isFocus, item.Selected,
                         this.Font, this.ForeColor, this.BackColor);
                     OnDrawItem(args);
                 }
-                height += rect.Height;
             }
         }
 
@@ -247,8 +236,8 @@ namespace Com.LanIM.UI
         {
             args.DrawBackground();
 
-            TextRenderer.DrawText(args.Graphics, args.Index + ":" + args.Item.ToString(), this.Font,
-                args.Bounds, this.ForeColor,
+            TextRenderer.DrawText(args.Graphics, args.Item.ToString(), this.Font,
+                args.Item.Bounds, this.ForeColor,
                 TextFormatFlags.EndEllipsis | TextFormatFlags.Left | TextFormatFlags.VerticalCenter);
         }
 
@@ -326,11 +315,11 @@ namespace Com.LanIM.UI
                 }
             }
 
-            ItemInfo itemInfo = HitTest(e.Location);
-            if (itemInfo != null)
+            ScrollableListItem item = HitTest(e.Location);
+            if (item != null)
             {
                 //触发Hover事件
-                ItemHoverEventArgs args = new ItemHoverEventArgs(itemInfo.Item, e.Location);
+                ItemHoverEventArgs args = new ItemHoverEventArgs(item, e.Location);
                 OnItemHover(args);
             }
 
@@ -355,13 +344,11 @@ namespace Com.LanIM.UI
         protected override void OnMouseClick(MouseEventArgs e)
         {
             base.OnMouseClick(e);
-            ItemInfo itemInfo = HitTest(e.Location);
-            if(itemInfo == null)
+            ScrollableListItem item = HitTest(e.Location);
+            if(item == null)
             {
                 return;
             }
-
-            ScrollableListItem item = itemInfo.Item;
 
             //设置选择状态
             bool bSelectChange = false;
@@ -370,7 +357,7 @@ namespace Com.LanIM.UI
                 if (this.ToggleSelection)
                 {
                     item.Selected = false;
-                    this.SelectedItems.Remove(itemInfo.Item);
+                    this.SelectedItems.Remove(item);
                     bSelectChange = true;
                 }
             }
@@ -391,7 +378,7 @@ namespace Com.LanIM.UI
             }
 
             //触发点击事件
-            ItemClickedEventArgs args = new ItemClickedEventArgs(itemInfo.Item, e.Button, e.Location);
+            ItemClickedEventArgs args = new ItemClickedEventArgs(item, e.Button, e.Location);
             OnItemClicked(args);
 
             if (bSelectChange)
@@ -401,7 +388,7 @@ namespace Com.LanIM.UI
             }
 
             //描绘选择状态
-            this.Invalidate(itemInfo.Bounds);
+            this.Invalidate(item.Bounds);
         }
 
         private void OnSelectionChanged(EventArgs args)
@@ -409,25 +396,18 @@ namespace Com.LanIM.UI
             SelectionChanged?.Invoke(this, args);
         }
 
-        private ItemInfo HitTest(Point mousePosition)
+        private ScrollableListItem HitTest(Point mousePosition)
         {
-            int height = 0;
             for (int i = 0; i < this.Items.Count; i++)
             {
                 ScrollableListItem item = this.Items[i];
 
                 Rectangle rect = item.Bounds;
-                rect.Y = height + _offset;
 
                 if (rect.Contains(mousePosition))
                 {
-                    ItemInfo ii = new ItemInfo();
-                    ii.Index = i;
-                    ii.Item = item;
-                    ii.Bounds = rect;
-                    return ii;
+                    return item;
                 }
-                height += rect.Height;
             }
 
             return null;
@@ -445,25 +425,43 @@ namespace Com.LanIM.UI
             this._scrollBarHandleBounds.Y = handleOffset;
         }
 
+        private void ResetItemsBounds()
+        {
+            int height = 0;
+            for (int i = 0; i < this.Items.Count; i++)
+            {
+                ScrollableListItem item = this.Items[i];
+
+                item.Y = height + Offset;
+
+                height += item.Height;
+            }
+        }
+
         //计算所有Item的大小
         public void MeasureItems()
         {
             //计算每个项目的高度
             int totleItemHeight = 0;
+            int height = 0;
             using (Graphics g = this.CreateGraphics())
             {
                 for (int i = 0; i < this.Items.Count; i++)
                 {
                     ScrollableListItem item = this.Items[i];
 
-                    //计算描画矩形区域（不含偏移量，在描画时计算偏移量）
-                    Rectangle rect = item.Bounds;
-                    rect.Width = this.ClientSize.Width;
-                    item.Bounds = rect;
+                    //计算描画矩形区域
+                    item.Width = this.ClientSize.Width;
 
-                    OnMeasureItem(new MeasureItemEventArgs(i, item, g, this.Font));
+                    OnMeasureItem(new MeasureItemEventArgs(item, g, this.Font));
+
+                    //重新设定Y的位置
+                    item.X = 0;
+                    item.Y = height + Offset;
 
                     totleItemHeight += item.Height;
+
+                    height += item.Height;
                 }
             }
 
@@ -481,19 +479,21 @@ namespace Com.LanIM.UI
         internal void MeasureItemOnAdd(IEnumerable<ScrollableListItem> collection)
         {
             int totleItemHeight = 0;
+            int height = this.TotleItemHeight;
             using (Graphics g = this.CreateGraphics())
             {
                 foreach (var item in collection)
                 {
-                    int index = this.Items.IndexOf(item);
+                    item.Width = this.ClientSize.Width;
 
-                    Rectangle rect = item.Bounds;
-                    rect.Width = this.ClientSize.Width;
-                    item.Bounds = rect;
+                    OnMeasureItem(new MeasureItemEventArgs(item, g, this.Font));
 
-                    OnMeasureItem(new MeasureItemEventArgs(index, item, g, this.Font));
+                    //重新设定Y的位置
+                    item.X = 0;
+                    item.Y = height + Offset;
 
                     totleItemHeight += item.Height;
+                    height += item.Height;
                 }
             }
 
@@ -539,6 +539,11 @@ namespace Com.LanIM.UI
         protected virtual void OnScrolledBottom()
         {
             ScrolledBottom?.Invoke(this, new EventArgs());
+        }
+
+        public ScrollableListItem GetItemAtPosition(Point point)
+        {
+            return HitTest(point);
         }
     }
 }

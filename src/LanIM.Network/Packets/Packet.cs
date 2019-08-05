@@ -12,14 +12,15 @@ namespace Com.LanIM.Network.Packets
     {
         //版本
         public const short VERSION = 0x10;
-        public const short PACKTE_TYPE_UDP = 0x01;
-        public const short PACKTE_TYPE_TCP = 0x02;
+        public const byte PACKTE_TYPE_UDP = 0x01;
+        public const byte PACKTE_TYPE_MULTI_UDP = 0x02;
+        public const byte PACKTE_TYPE_TCP = 0x03;
         //编码
         public static Encoding ENCODING = Encoding.UTF8;
 
         public short Version { get; set; }
-        //包种类, 0:udp 1:tcp
-        public abstract short Type { get; }
+        //包种类, Packet.PACKTE_TYPE_XXX
+        public abstract byte Type { get; }
         public object Extend { get; set; }
 
         public Packet()

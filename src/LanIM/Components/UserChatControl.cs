@@ -16,18 +16,20 @@ using System.IO;
 using System.Drawing.Imaging;
 using Message = Com.LanIM.Store.Models.Message;
 using static Com.LanIM.Components.MessageListItem;
+using Com.LanIM.Network;
+using System.Collections.Specialized;
 
 namespace Com.LanIM.Components
 {
-    public partial class UserChatControl : UserControl
+    partial class UserChatControl : UserControl
     {
-        private MessageHistoryMapper _messageHistoryMapper = new MessageHistoryMapper();
-
         public UserChatControl()
         {
             InitializeComponent();
 
             SetupToolBar();
+
+            contextMenuStripMessage.Renderer = new CommonContextMenuRender();
         }
 
         private void SetupToolBar()
@@ -57,8 +59,31 @@ namespace Com.LanIM.Components
 
         internal LanUser User { get; set; }
         internal LanUser Contacter { get; set; }
+        private bool _sendMessageEnabled = false;
+        public bool SendMessageEnabled
+        {
+            get
+            {
+                return _sendMessageEnabled;
+            }
+            set
+            {
+                _sendMessageEnabled = value;
+                if (_sendMessageEnabled)
+                {
+                    this.textBoxInput.BackColor = Color.White;
+                    this.commonToolBar.BackColor = Color.White;
+                }
+                else
+                {
+                    this.textBoxInput.BackColor = Color.LightGoldenrodYellow;
+                    this.commonToolBar.BackColor = Color.LightGoldenrodYellow;
+                }
+            }
+        }
+        public event SendMessageEventHandler SendMessage;
 
-        internal void InitializeLatastMessage()
+        internal void InitializeLatastMessage(List<MessageListItem> cacheWaitDisplayMessages)
         {
             long id = -1;
             MessageListItem item = null;
@@ -68,179 +93,328 @@ namespace Com.LanIM.Components
                 id = item.Message.ID;
             }
 
-            List<Message> list = _messageHistoryMapper.QueryUserLatestMessages(this.Contacter.ID, id);
+            MessageHistoryMapper messageHistoryMapper = new MessageHistoryMapper();
+            List<Message> list = messageHistoryMapper.QueryUserLatestMessages(this.Contacter.ID, id);
 
             List<MessageListItem> items = new List<MessageListItem>();
             foreach (Message m in list)
             {
-                MessageListItem i = new MessageListItem();
-                i.Message = m;
-                i.User = m.FromUserId == User.ID ? User : Contacter;
+                //优先追加缓存中的数据
+                int index = -1;
+                if (cacheWaitDisplayMessages != null)
+                {
+                    index = cacheWaitDisplayMessages.FindIndex((i) =>
+                    {
+                        if (i.Message.ID == m.ID)
+                        {
+                            return true;
+                        }
+                        return false;
+                    }
+                    );
+                }
 
-                items.Add(i);
+                if (index == -1)
+                {
+                    item = new MessageListItem();
+                    item.Message = m;
+                    if (m.Flag)
+                    {
+                        if (m.FromUserId == User.ID)
+                        {
+                            item.State = MessageState.SendSuccess;
+                        }
+                        else
+                        {
+                            item.State = MessageState.Received;
+                        }
+                    }
+                    else
+                    {
+                        if (m.FromUserId == User.ID)
+                        {
+                            item.State = MessageState.SendError;
+                        }
+                        else
+                        {
+                            item.State = MessageState.ReceiveError;
+                        }
+                    }
+                    item.User = m.FromUserId == User.ID ? User : Contacter;
+                }
+                else
+                {
+                    item = cacheWaitDisplayMessages[index];
+                    cacheWaitDisplayMessages.RemoveAt(index);
+                }
+                items.Add(item);
             }
+
+            if (cacheWaitDisplayMessages != null)
+            {
+                items.AddRange(cacheWaitDisplayMessages);
+            }
+
             messageListBox.Items.InsertRange(0, items);
 
             if (items.Count != 0)
             {
                 //向上滚动取有记录的话，选中添加的最后1个
-                messageListBox.TopItem = items[items.Count - 1];
+                messageListBox.ScrollToBottom();
             }
         }
 
         private void SendFile_Click(object sender, EventArgs e)
         {
+            if(!this.SendMessageEnabled)
+            {
+                return;
+            }
             using (OpenFileDialog ofd = new OpenFileDialog())
             {
                 ofd.Filter = "所有文件|*.*";
                 if (ofd.ShowDialog(this) == DialogResult.OK)
                 {
                     string fileName = ofd.FileName;
-                    User.SendFile(Contacter, fileName);
+                    long id = User.SendFile(Contacter, fileName);
 
                     //保存发送记录
-                    AddFileMessage(this.User, this.Contacter, fileName);
+                    Store.Models.FileMessage m = new Store.Models.FileMessage();
+                    m.FromUserId = this.User.ID;
+                    m.ToUserId = this.Contacter.ID;
+                    m.OriginFilePath = fileName;
+                    m.FileName = Path.GetFileName(fileName);
+                    m.FileLength = LanFile.GetFileLength(fileName);
+                    m.Flag = true; //默认成功，后面按照失败结果设定为false
+
+                    MessageListItem item = new MessageListItem();
+                    item.ID = id;
+                    item.Message = m;
+                    item.User = this.User;
+                    item.State = MessageState.Sending;
+
+                    item.Save();
+
+                    AddMessageItem(item, true);
+
+                    OnSendMessage(m);
                 }
             }
         }
 
         private void SendImage_Click(object sender, EventArgs e)
         {
+            if (!this.SendMessageEnabled)
+            {
+                return;
+            }
             using (OpenFileDialog ofd = new OpenFileDialog())
             {
                 ofd.Filter = "图像文件|*.png;*.jpg;*.bmp;";
                 if (ofd.ShowDialog(this) == DialogResult.OK)
                 {
                     string fileName = ofd.FileName;
-                    User.SendImage(Contacter, fileName);
+                    Image smallImg = LanImage.GetThumbnailImage(fileName, MessageListBox.PICTURE_THUMBNAIL_HEIGHT);
+                    if(smallImg == null)
+                    {
+						//可能不是合法的图片
+                        return;
+                    }
+
+                    long id = User.SendImage(Contacter, fileName);
 
                     //保存发送记录，只保存缩略图，原图的Path也保存
-                    Image img = Image.FromFile(fileName);
-                    int w = (int)(1.0 * img.Width * MessageListBox.PICTURE_THUMBNAIL_HEIGHT / img.Height);
-                    Image smallImg = img.GetThumbnailImage(w, MessageListBox.PICTURE_THUMBNAIL_HEIGHT, null, IntPtr.Zero);
-                    AddImageMessage(this.User, this.Contacter, smallImg, fileName);
+                    Store.Models.ImageMessage m = new Store.Models.ImageMessage(smallImg);
+                    m.FromUserId = this.User.ID;
+                    m.ToUserId = this.Contacter.ID;
+                    m.OriginPath = fileName;
+                    m.Flag = true; //默认成功，后面按照失败结果设定为false
+
+                    MessageListItem item = new MessageListItem();
+                    item.ID = id;
+                    item.State = MessageState.Sending;
+                    item.Message = m;
+                    item.User = this.User;
+
+                    item.Save();
+
+                    AddMessageItem(item, true);
+
+                    OnSendMessage(m);
                 }
             }
         }
-        
+
         private void textBoxInput_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.Enter && !e.Control)
             {
+                if (!this.SendMessageEnabled)
+                {
+                    return;
+                }
+                if(string.IsNullOrEmpty(textBoxInput.Text) ||
+                    string.IsNullOrEmpty(textBoxInput.Text.Replace("\r", "").Replace("\n","")))
+                {
+                    //空或者只有空行不发送
+                    return;
+                }
                 long id = User.SendTextMessage(Contacter, textBoxInput.Text);
 
-                AddTextMessage(this.User, this.Contacter, id, textBoxInput.Text, MessageState.Sending);
+                Store.Models.Message m = new Store.Models.Message(MessageType.Text);
+                m.FromUserId = this.User.ID;
+                m.ToUserId = this.Contacter.ID;
+                m.Content = textBoxInput.Text;
+                m.Flag = true; //默认成功，后面按照失败结果设定为false
+
+                MessageListItem item = new MessageListItem();
+                item.State = MessageState.Sending;
+                item.ID = id;
+                item.Message = m;
+                item.User = this.User;
+
+                item.Save();
+
+                AddMessageItem(item, true);
 
                 textBoxInput.Text = "";
+                e.Handled = true;
+
+                OnSendMessage(m);
+            }
+        }
+
+        private void OnSendMessage(Message m)
+        {
+            SendMessage?.Invoke(this, new SendMessageEventArgs(m));
+        }
+
+        private void textBoxInput_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (e.KeyChar == '\r')
+            {
+                //无视直接回车的输入
                 e.Handled = true;
             }
         }
 
-        public void AddTextMessage(long id, string message)
+        internal void AddMessageItem(MessageListItem item, bool forceDisplayedBottom)
         {
-            AddTextMessage(this.Contacter, this.User, id, message, MessageState.Received);
-        }
-
-        public void AddImageMessage(Image img)
-        {
-            AddImageMessage(this.Contacter, this.User, img, string.Empty);
-        }
-
-        public void AddFileMessage(string filePath)
-        {
-            AddFileMessage(this.Contacter, this.User, filePath);
-        }
-
-        private void AddTextMessage(LanUser from, LanUser to, long id, string message, MessageState state)
-        {
-            Store.Models.Message m = new Store.Models.Message(MessageType.Text);
-            m.FromUserId = from.ID;
-            m.ToUserId = to.ID;
-            m.Content = message;
-            m.Flag = true; //默认成功，后面按照失败结果设定为false
-
-            _messageHistoryMapper.Add(m);
-
-            MessageListItem item = new MessageListItem();
-            item.State = state;
-            item.ID = id;
-            item.Message = m;
-            item.User = from;
-
             messageListBox.Items.Add(item);
-            messageListBox.ScrollToBottom();
-        }
-
-        private void AddImageMessage(LanUser from, LanUser to, Image img, string originPath)
-        {
-            //保存记录
-            Store.Models.ImageMessage m = new Store.Models.ImageMessage(img);
-            m.FromUserId = from.ID;
-            m.ToUserId = to.ID;
-            m.OriginPath = originPath;
-            m.Flag = true; //默认成功，后面按照失败结果设定为false
-
-            _messageHistoryMapper.Add(m);
-
-            MessageListItem item = new MessageListItem();
-            item.Message = m;
-            item.User = from;
-
-            messageListBox.Items.Add(item);
-            messageListBox.ScrollToBottom();
-        }
-
-        private void AddFileMessage(LanUser from, LanUser to, string filePath)
-        {
-            //保存记录
-            Store.Models.ImageMessage m = new Store.Models.ImageMessage(Image.FromFile(filePath));
-            m.FromUserId = from.ID;
-            m.ToUserId = to.ID;
-            m.Content = filePath;
-            m.Flag = true; //默认成功，后面按照失败结果设定为false
-
-            _messageHistoryMapper.Add(m);
-
-            MessageListItem item = new MessageListItem();
-            item.Message = m;
-            item.User = from;
-
-            messageListBox.Items.Add(item);
-            messageListBox.ScrollToBottom();
-        }
-
-        public void SetMessageSendResult(long id, bool success)
-        {
-            if(success)
+            if(forceDisplayedBottom)
             {
-                //发送时就按照默认成功的，发送成功的消息可以忽略了
-                return;
+                messageListBox.ScrollToBottom();
             }
+        }
 
+        internal MessageListItem GetMessageItem(long id)
+        {
             //因为后后加的，倒过来循环速度更快应该
             for (int i = messageListBox.Items.Count - 1; i > -1; i--)
             {
-                MessageListItem item  = messageListBox.Items[i] as MessageListItem;
+                MessageListItem item = messageListBox.Items[i] as MessageListItem;
 
                 if (item.ID == id)
                 {
-                    Message m = item.Message;
-                    m.Flag = success;
-                    _messageHistoryMapper.UpdateState(m);
-                    break;
+                    return item;
                 }
             }
+
+            return null;
+        }
+
+        internal void RefreshMessageList(MessageListItem item)
+        {
+            this.messageListBox.Invalidate(item);
         }
 
         private void MessageListBox_ScrolledTop(object sender, System.EventArgs e)
         {
             //滚动到最上面，继续取靠近的消息
-            InitializeLatastMessage();
+            InitializeLatastMessage(null);
         }
 
         private void MessageListBox_ScrolledBottom(object sender, System.EventArgs e)
         {
             //TODO 考虑效率问题，当前滚动部分加载固定的条数，通过滚动到最上最下来调整，暂时不对应等有效率问题再说吧
+        }
+
+        private void toolStripMenuItemMessage_Click(object sender, EventArgs e)
+        {
+            MessageListItem item = messageListBox.GetItemAtPosition(messageListBox.PointToClient(MousePosition)) as MessageListItem;
+            if (item == null)
+            {
+                return;
+            }
+
+            Message m = item.Message;
+
+            if (sender == toolStripMenuItemCopy)
+            {
+                if (m.Type == MessageType.Text)
+                {
+                    string selection = item.SelectedText;
+                    if(!string.IsNullOrEmpty(selection))
+                    {
+                        Clipboard.SetText(selection);
+                    }
+                    else
+                    {
+                        Clipboard.SetText(m.Content);
+                    }
+                }
+                else if (m.Type == MessageType.Image)
+                {
+                    Clipboard.SetImage((m as ImageMessage).Image);
+                }
+                else if (m.Type == MessageType.File)
+                {
+                    string filePath = (m as FileMessage).OriginFilePath;
+                    if(File.Exists(filePath))
+                    {
+                        StringCollection sc = new StringCollection();
+                        sc.Add(filePath);
+                        Clipboard.SetFileDropList(sc);
+                    }
+                }
+            }
+            else if(sender == toolStripMenuItemOpenFolder)
+            {
+                if (m.Type == MessageType.Image)
+                {
+                }
+                else if (m.Type == MessageType.File)
+                {
+                    string filePath = (m as FileMessage).OriginFilePath;
+                    if (File.Exists(filePath))
+                    {
+                       
+                    }
+                }
+            }
+            else if(sender == toolStripMenuItemSaveAs)
+            {
+
+            }
+        }
+
+        private void contextMenuStripMessage_Opening(object sender, CancelEventArgs e)
+        {
+            MessageListItem item = messageListBox.GetItemAtPosition(messageListBox.PointToClient(MousePosition)) as MessageListItem;
+            if(item == null)
+            {
+                e.Cancel = true;
+                return;
+            }
+
+            contextMenuStripMessage.Items.Clear();
+            contextMenuStripMessage.Items.Add(toolStripMenuItemCopy);
+            if (item.Message.Type != MessageType.Text)
+            {
+                contextMenuStripMessage.Items.Add(new ToolStripSeparator());
+                contextMenuStripMessage.Items.Add(toolStripMenuItemOpenFolder);
+                contextMenuStripMessage.Items.Add(toolStripMenuItemSaveAs);
+            }
         }
     }
 }

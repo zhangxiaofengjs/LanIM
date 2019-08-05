@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace Com.LanIM.Store
 {
@@ -67,17 +68,26 @@ namespace Com.LanIM.Store
 
         public static bool UnInitialize()
         {
+            _instance.Conn.Close();
             return true;
         }
 
         internal DataTable Query(string sql, params SQLiteParameter[] parameters)
         {
-            SQLiteCommand cmd = CreateCommand(sql, parameters);
+            try
+            {
+                SQLiteCommand cmd = CreateCommand(sql, parameters);
 
-            SQLiteDataAdapter adpter = new SQLiteDataAdapter(cmd);
-            DataTable dt = new DataTable();
-            adpter.Fill(dt);
-            return dt;
+                SQLiteDataAdapter adpter = new SQLiteDataAdapter(cmd);
+                DataTable dt = new DataTable();
+                adpter.Fill(dt);
+                return dt;
+            }
+            catch(Exception e)
+            {
+                LoggerFactory.Error("Query错误:", e);
+            }
+            return null;
         }
 
         private SQLiteCommand CreateCommand(string sql, SQLiteParameter[] parameters)
@@ -97,13 +107,21 @@ namespace Com.LanIM.Store
 
         internal object ExecuteScalar(string sql, params SQLiteParameter[] parameters)
         {
-            SQLiteCommand cmd = CreateCommand(sql, parameters);
-            object obj = cmd.ExecuteScalar();
-            if(obj is DBNull)
+            try
             {
-                return null;
+                SQLiteCommand cmd = CreateCommand(sql, parameters);
+                object obj = cmd.ExecuteScalar();
+                if (obj is DBNull)
+                {
+                    return null;
+                }
+                return obj;
             }
-            return obj;
+            catch (Exception e)
+            {
+                LoggerFactory.Error("ExecuteScalar错误:", e);
+            }
+            return null;
         }
 
         internal void Delete(string sql, params SQLiteParameter[] parameters)
@@ -116,8 +134,15 @@ namespace Com.LanIM.Store
         }
         private void ExecuteNoQuery(string sql, params SQLiteParameter[] parameters)
         {
-            SQLiteCommand cmd = CreateCommand(sql, parameters);
-            cmd.ExecuteNonQuery();
+            try
+            {
+                SQLiteCommand cmd = CreateCommand(sql, parameters);
+                cmd.ExecuteNonQuery();
+            }
+            catch (Exception e)
+            {
+                LoggerFactory.Error("ExecuteNoQuery错误:", e);
+            }
         }
 
         /// <summary>
@@ -128,8 +153,16 @@ namespace Com.LanIM.Store
         /// <returns></returns>
         internal int Insert(string sql, params SQLiteParameter[] parameters)
         {
-            SQLiteCommand cmd = CreateCommand(sql + ";select last_insert_rowid();", parameters);
-            return Convert.ToInt32(cmd.ExecuteScalar());
+            try
+            {
+                SQLiteCommand cmd = CreateCommand(sql + ";select last_insert_rowid();", parameters);
+                return Convert.ToInt32(cmd.ExecuteScalar());
+            }
+            catch (Exception e)
+            {
+                LoggerFactory.Error("Insert错误:", e);
+            }
+            return -1;
         }
     }
 }

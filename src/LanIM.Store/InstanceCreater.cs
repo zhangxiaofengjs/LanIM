@@ -42,6 +42,10 @@ namespace Com.LanIM.Store
             {
                 return new ImageMessage();
             }
+            else if ((MessageType)type == MessageType.File)
+            {
+                return new FileMessage();
+            }
             return null;
         }
     }

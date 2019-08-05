@@ -28,22 +28,23 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.textBox1 = new System.Windows.Forms.TextBox();
+            this.filterTextBox = new System.Windows.Forms.TextBox();
             this.SuspendLayout();
             // 
-            // textBox1
+            // filterTextBox
             // 
-            this.textBox1.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            this.textBox1.Location = new System.Drawing.Point(14, 3);
-            this.textBox1.Name = "textBox1";
-            this.textBox1.Size = new System.Drawing.Size(145, 12);
-            this.textBox1.TabIndex = 0;
+            this.filterTextBox.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.filterTextBox.Location = new System.Drawing.Point(14, 3);
+            this.filterTextBox.Name = "filterTextBox";
+            this.filterTextBox.Size = new System.Drawing.Size(145, 12);
+            this.filterTextBox.TabIndex = 0;
+            this.filterTextBox.TextChanged += new System.EventHandler(this.filterTextBox_TextChanged);
             // 
             // SearchBox
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.Controls.Add(this.textBox1);
+            this.Controls.Add(this.filterTextBox);
             this.Name = "SearchBox";
             this.Size = new System.Drawing.Size(220, 36);
             this.ResumeLayout(false);
@@ -53,6 +54,6 @@
 
         #endregion
 
-        private System.Windows.Forms.TextBox textBox1;
+        private System.Windows.Forms.TextBox filterTextBox;
     }
 }

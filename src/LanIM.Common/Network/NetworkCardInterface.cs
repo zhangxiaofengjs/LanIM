@@ -8,13 +8,19 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Com.LanIM.Network
+namespace Com.LanIM.Common.Network
 {
     public class NetworkCardInterface
     {
-        public static List<IPv4Address> GetIPv4Address()
+        private static List<NCIInfo> s_nicInfoListCache = new List<NCIInfo>();
+
+        public static List<NCIInfo> GetNCIInfoList()
         {
-            List<IPv4Address> addresss = new List<IPv4Address>();
+            if(s_nicInfoListCache.Count != 0)
+            {
+                //考虑到网卡不是一直变，用缓存提高速度
+                return s_nicInfoListCache;
+            }
 
             NetworkInterface[] adapters = NetworkInterface.GetAllNetworkInterfaces();
             foreach (NetworkInterface adapter in adapters)
@@ -53,21 +59,22 @@ namespace Com.LanIM.Network
                 
                 if(ipAddr != null)
                 {
-                    IPv4Address addr = new IPv4Address
+                    NCIInfo addr = new NCIInfo
                     {
                         Address = ipAddr,
                         Mask = ipMaskAddr,
                         GateWay = gwIp,
                         MAC = adapter.GetPhysicalAddress().ToString(),
-                        NetworkCardInterfaceType = GetNetworkInterfaceType(adapter)
+                        Type = GetNetworkInterfaceType(adapter),
+                        Name = adapter.Name,
                     };
-                    addresss.Add(addr);
+                    s_nicInfoListCache.Add(addr);
                 }
             }
-            return addresss;
+            return s_nicInfoListCache;
         }
 
-        public static NetworkCardInterfaceType GetNetworkInterfaceType(NetworkInterface adapter)
+        private static NCIType GetNetworkInterfaceType(NetworkInterface adapter)
         {
             string fRegistryKey = "SYSTEM\\CurrentControlSet\\Control\\Network\\{4D36E972-E325-11CE-BFC1-08002BE10318}\\" + adapter.Id + "\\Connection";
             RegistryKey rk = Registry.LocalMachine.OpenSubKey(fRegistryKey, false);
@@ -80,15 +87,15 @@ namespace Com.LanIM.Network
                 int fMediaSubType = Convert.ToInt32(rk.GetValue("MediaSubType", 0));
                 if (fPnpInstanceID.Length > 3 &&
                     fPnpInstanceID.Substring(0, 3) == "PCI")
-                    return NetworkCardInterfaceType.Physical;
+                    return NCIType.Physical;
                 else if (fMediaSubType == 1)
-                    return NetworkCardInterfaceType.Virtual;
+                    return NCIType.Virtual;
                 else if (fMediaSubType == 2)
-                    return NetworkCardInterfaceType.Wireless;
+                    return NCIType.Wireless;
                 else
-                    return NetworkCardInterfaceType.UNKNOW;
+                    return NCIType.UNKNOW;
             }
-            return NetworkCardInterfaceType.UNKNOW;
+            return NCIType.UNKNOW;
         }
     }
 }

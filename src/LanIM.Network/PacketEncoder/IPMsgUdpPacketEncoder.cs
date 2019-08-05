@@ -7,7 +7,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Com.LanIM.Network.PacketsEncoder
+namespace Com.LanIM.Network.PacketEncoder
 {
     //兼容IPMsg 3.42的包格式的解析类
     public class IPMsgUdpPacketEncoder : IPacketEncoder
@@ -20,7 +20,7 @@ namespace Com.LanIM.Network.PacketsEncoder
             this._packet = packet;
         }
 
-        public byte[] Encode()
+        public EncodeResult Encode(object args)
         {
             string str = string.Format("{0}:{1}:{2}:{3}:{4}:{5}",
                    _packet.Version,
@@ -30,7 +30,7 @@ namespace Com.LanIM.Network.PacketsEncoder
                    _packet.Command,
                    _packet.Message);
 
-            return Encoding.UTF8.GetBytes(str);
+            return new EncodeResult(Encoding.UTF8.GetBytes(str));
         }
 
         private static string UTF82ASCII(string str)

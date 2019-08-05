@@ -1,10 +1,15 @@
-﻿using Com.LanIM.UI;
+﻿using Com.LanIM.Common;
+using Com.LanIM.Common.Network;
+using Com.LanIM.Components;
+using Com.LanIM.Network;
+using Com.LanIM.UI;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -13,8 +18,6 @@ namespace Com.LanIM
 {
     public partial class FormConfig : CommonForm
     {
-        bool _edit = false;
-
         public FormConfig()
         {
             InitializeComponent();
@@ -32,6 +35,11 @@ namespace Com.LanIM
                 _user = value;
                 textBoxUserName.Text = _user.NickName;
                 pictureBoxFace.Image = ProfilePhotoPool.GetPhoto(_user.ID);
+
+                NCIInfo nicInfo = NCIInfo.GetNICInfo(_user.ID);
+                textBoxNIC.Text = nicInfo == null ? "" : nicInfo.Name;
+                labelIP.Text = _user.IP.ToString();
+                textBoxBroadcastAddress.Text = NCIInfo.ConvertToString(_user.BroadcastAddress);
             }
         }
 
@@ -46,26 +54,58 @@ namespace Com.LanIM
 
                     //统一缩小处理后保存，随后会更新给各个客户端User.UpdateState()
                     Image img = ProfilePhotoPool.ScalePhoto(fileName);
-                    ProfilePhotoPool.SetPhoto(User.ID, img);
-
-                    pictureBoxFace.Image = img;
-                    _edit = true;
+                    UpdateProfilePhoto(img);
                 }
             }
         }
 
+        private void UpdateProfilePhoto(Image img)
+        {
+            ProfilePhotoPool.SetPhoto(User.ID, img);
+
+            pictureBoxFace.Image = img;
+            User.UpdateState(UpdateState.Photo);
+        }
+
         private void FormConfig_FormClosed(object sender, FormClosedEventArgs e)
         {
-            if (_edit)
+            if (User.NickName != textBoxUserName.Text)
             {
                 User.NickName = textBoxUserName.Text;
-                User.UpdateState();
+                User.UpdateState(UpdateState.NickName);
+
+                LanConfig.Instance.NickName = User.NickName;
+            }
+
+            string str = NCIInfo.ConvertToString(LanConfig.Instance.BroadcastAddress);
+            if (str != textBoxBroadcastAddress.Text)
+            {
+                LanConfig.Instance.BroadcastAddress = NCIInfo.ConvertToIPAddIfNotExist(textBoxBroadcastAddress.Text,
+                    NCIInfo.GetBroadcastIP(LanConfig.Instance.MAC));
+                User.BroadcastAddress = LanConfig.Instance.BroadcastAddress;
             }
         }
 
-        private void textBoxUserName_TextChanged(object sender, EventArgs e)
+        private void labelSysPhoto_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            _edit = true;
+            SystemProfilePhotoControl sysPhC = new SystemProfilePhotoControl();
+            sysPhC.ImageSelected += new ImageEventHandler((snder, args)=>
+            {
+                UpdateProfilePhoto(args.Image);
+            });
+            sysPhC.Show(labelSysPhoto);
+        }
+
+        private void ContextMenuStripMAC_NCIInfoSelected(object sender, NCIInfoEventArgs args)
+        {
+            textBoxNIC.Text = args.NCIInfo.Name;
+            labelIP.Text = args.NCIInfo.Address.ToString();
+            LanConfig.Instance.MAC = args.NCIInfo.MAC;
+        }
+
+        private void textBoxNIC_Click(object sender, EventArgs e)
+        {
+            contextMenuStripMAC.Show(textBoxNIC, new Point(0, textBoxNIC.Height));
         }
     }
 }

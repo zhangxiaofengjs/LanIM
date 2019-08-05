@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Com.LanIM.Network.Packets
 {
-    //包格式：版本（2字节)，包编号(8字节），命令编号（8字节），发送主机网卡MAC（12字节），附加信息区域（N字节）
+    //包格式：版本（2字节)，包类型(1字节），包编号(8字节）,命令编号（8字节），发送主机网卡MAC（12字节），附加信息区域（N字节）
     public class UdpPacket : Packet
     {
         //命令
@@ -24,10 +24,13 @@ namespace Com.LanIM.Network.Packets
 
         public const ulong CMD_OPTION_NEED_RESPONSE = 0x00000100; //是否需要回应消息
         public const ulong CMD_OPTION_SEND_FILE_IMAGE = 0x00000200; //是否发送的图像
-        public const ulong CMD_OPTION_STATE_PROFILE_PHOTO = 0x00000400; //发送的头像
-        public const ulong CMD_OPTION_STATE_XXX = 0x00000800; //发送的头像
 
-        public override short Type
+        public const ulong CMD_OPTION_STATE_PROFILE_PHOTO = 0x00000400; //用户头像
+        public const ulong CMD_OPTION_STATE_NICKNAME = 0x00000800; //用户昵称
+        public const ulong CMD_OPTION_STATE_STATUS = 0x000001000; //用户状态
+        public const ulong CMD_OPTION_STATE_PUBKEY = 0x000002000; //用户加密公钥
+
+        public override byte Type
         {
             get
             {

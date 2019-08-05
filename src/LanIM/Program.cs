@@ -1,4 +1,5 @@
-﻿using Com.LanIM.Common.Logger;
+﻿using Com.LanIM.Common;
+using Com.LanIM.Common.Logger;
 using Com.LanIM.Store;
 using System;
 using System.Collections.Generic;
@@ -20,15 +21,31 @@ namespace Com.LanIM
             Application.SetCompatibleTextRenderingDefault(false);
 
             LoggerFactory.Initialize();
-            LanIMStore.Initialize();
+#if !DEBUG
+            try
+            {
+#endif
+                LanConfig.Instance.Load();
+                LanIMStore.Initialize();
 
-            FormLogin loginForm = new FormLogin();
-            loginForm.ShowDialog();
+                FormLogin loginForm = new FormLogin();
+                DialogResult dr = loginForm.ShowDialog();
+                if (dr == DialogResult.OK)
+                {
+                    FormLanIM form = new FormLanIM();
+                    Application.Run(form);
 
-            FormLanIM form = new FormLanIM();
-            Application.Run(form);
+                    LanConfig.Instance.Save();
+                }
 
-            LanIMStore.UnInitialize();
+                LanIMStore.UnInitialize();
+#if !DEBUG
+            }
+            catch (Exception e)
+            {
+                //MessageBox.Show(e.Message + e.Source);
+            }
+#endif
             LoggerFactory.UnInitialize();
         }
     }

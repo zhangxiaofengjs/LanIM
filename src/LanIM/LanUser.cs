@@ -1,24 +1,21 @@
 ﻿using Com.LanIM.Common;
+using Com.LanIM.Common.Network;
 using Com.LanIM.Common.Security;
 using Com.LanIM.Network;
 using Com.LanIM.Network.Packets;
-using Com.LanIM.Network.PacketsEncoder;
+using Com.LanIM.UI;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
-using System.IO;
-using System.Linq;
 using System.Net;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
+using Com.LanIM.Store.Models;
 #pragma warning disable IDE0017 // オブジェクトの初期化を簡略化します
 
 namespace Com.LanIM
 {
-    public class LanUser
+    class LanUser
     {
         private UdpClientEx _client;
         private FileTransportTcpListener _fileTransTcpListener;
@@ -31,7 +28,7 @@ namespace Com.LanIM
             {
                 LanUser user = Contacters.Find((u) =>
                 {
-                    if (u.IP.MAC == mac)
+                    if (u.MAC == mac)
                     {
                         return true;
                     }
@@ -41,9 +38,7 @@ namespace Com.LanIM
                 if(user == null)
                 {
                     user = new LanUser();
-                    IPv4Address ip = new IPv4Address();
-                    ip.MAC = mac;
-                    user.IP = ip;
+                    user.MAC = mac;
                     this.Contacters.Add(user);
                 }
                 return user;
@@ -62,11 +57,16 @@ namespace Com.LanIM
                 _securityKeys = value;
             }
         }
-        public IPv4Address IP { get; set; }
-        public string NickName { get; set; }
-        public int Port { get; set; }
-        public LanUserStatus State { get; set; }
-        public string ID { get { return IP.MAC; } }
+
+        public string ID { get { return this.MAC; } }
+        public string MAC { get { return Contacter.MAC; } set { Contacter.MAC = value; } }
+        public IPAddress IP { get { return NCIInfo.Parse(Contacter.IP); } set { Contacter.IP = value.ToString(); } }
+        public int Port { get { return Contacter.Port; } set { Contacter.Port = value; } }
+        public List<IPAddress> BroadcastAddress { get; set; }
+        public string NickName { get { return Contacter.NickName; } set { Contacter.NickName = value; } }
+        public string Memo { get { return Contacter.Memo; } set { Contacter.Memo = value; } }
+        public UserStatus Status { get; set; }
+        public Contacter Contacter { get; internal set; }
 
         private SynchronizationContext _context = null;
 
@@ -100,10 +100,11 @@ namespace Com.LanIM
         public LanUser(SynchronizationContext context = null)
         {
             this._context = context;
+            this.Contacter = new Contacter();
             this.Port = UdpClientEx.DEFAULT_PORT;
             this.Contacters = new List<LanUser>();
-            this.State = LanUserStatus.Offline;
-            this.IP = new IPv4Address();
+            this.Status = UserStatus.Offline;
+            this.IP = IPAddress.None;
         }
 
         public bool Listen()
@@ -117,6 +118,7 @@ namespace Com.LanIM
             _client = new UdpClientEx(_context)
             {
                 Port = this.Port,
+                IP = this.IP,
                 SecurityKeys = SecurityKeys
             };
             _client.SendPacket += this.SendPacketEvent;
@@ -138,76 +140,95 @@ namespace Com.LanIM
             _fileTransTcpListener.ProgressChanged += FileSendProgressChanged;
             _fileTransTcpListener.Completed += FileSendCompleted;
             _fileTransTcpListener.Error += FileSendError;
-            _fileTransTcpListener.Listen(IP.Address, this.Port);
+            _fileTransTcpListener.Listen(IP, this.Port);
             return true;
         }
 
         //发送上线
         public void Login()
         {
-            //先发送一个空操作，以防失败
-            SendEmptyPacket();
+            foreach (IPAddress broadcastAddr in this.BroadcastAddress)
+            {
+                //先发送一个空操作，以防失败
+                SendEmptyPacket(broadcastAddr);
+                Thread.Sleep(100);
 
-            UdpPacket packet = new UdpPacket();
-            packet.Address = IP.BroadcastAddress;
-            packet.Port = this.Port;
-            packet.ToMAC = string.Empty;
-            packet.Command = UdpPacket.CMD_ENTRY;
-            packet.FromMAC = IP.MAC;
+                UdpPacket packet = new UdpPacket();
+                packet.Address = broadcastAddr;
+                packet.Port = this.Port;
+                packet.ToMAC = string.Empty;
+                packet.Command = UdpPacket.CMD_ENTRY |
+                    UdpPacket.CMD_OPTION_STATE_NICKNAME  |
+                    //UdpPacket.CMD_OPTION_STATE_PROFILE_PHOTO | //TODO 应该更新所有的，但是跨网的时候好像发送的byte太长，不能正常发送暂且去掉头像
+                    UdpPacket.CMD_OPTION_STATE_PUBKEY |
+                    UdpPacket.CMD_OPTION_STATE_STATUS;
+                packet.FromMAC = this.MAC;
 
-            UdpPacketEntryExtend extend = new UdpPacketEntryExtend();
-            extend.PublicKey = _client.SecurityKeys.Public;//送公钥出去
-            extend.NickName = this.NickName;
-            extend.ProfilePhoto = ProfilePhotoPool.GetPhoto(this.ID, false);
+                UdpPacketStateExtend extend = new UdpPacketStateExtend();
+                extend.PublicKey = _client.SecurityKeys.Public;//送公钥出去
+                extend.NickName = this.NickName;
+                extend.ProfilePhoto = ProfilePhotoPool.GetPhoto(this.ID, false);
+                extend.Status = this.Status;
 
-            packet.Extend = extend;
+                packet.Extend = extend;
+                _client.Send(packet);
+                Thread.Sleep(100);
+            }
 
-            _client.Send(packet);
+            //10分钟以后更新头像
+            WaitTimer.Start(1 * 60 * 10 * 1000, 
+                new TimerCallback((obj)=>
+                {
+                    UpdateState(LanIM.UpdateState.Photo);
+                }
+            ), null);
         }
 
-        private void SendEmptyPacket()
+        private void SendEmptyPacket(IPAddress addr)
         {
             UdpPacket packet = new UdpPacket();
-            packet.Address = IP.BroadcastAddress;
+            packet.Address = addr;
             packet.Port = this.Port;
             packet.ToMAC = string.Empty;
             packet.Command = UdpPacket.CMD_NOTHING;
-            packet.FromMAC = IP.MAC;
-
-            _client.Send(packet);
-
-            Thread.Sleep(200);
+            packet.FromMAC = this.MAC;
         }
 
-        public void Close()
+        private void Close()
         {
             _client.Close();
         }
 
         public void Exit()
         {
-            SendEmptyPacket();
+            foreach (IPAddress broadcastAddr in this.BroadcastAddress)
+            {
+                SendEmptyPacket(broadcastAddr);
 
-            this.State = LanUserStatus.Offline;
+                this.Status = UserStatus.Offline;
 
-            UdpPacket packet = new UdpPacket();
-            packet.Address = IP.BroadcastAddress;
-            packet.Port = this.Port;
-            packet.ToMAC = string.Empty;
-            packet.Command = UdpPacket.CMD_EXIT;
-            packet.FromMAC = IP.MAC;
+                UdpPacket packet = new UdpPacket();
+                packet.Address = broadcastAddr;
+                packet.Port = this.Port;
+                packet.ToMAC = string.Empty;
+                packet.Command = UdpPacket.CMD_EXIT;
+                packet.FromMAC = this.MAC;
 
-            _client.Send(packet);
+                _client.Send(packet);
+                Thread.Sleep(100);
+            }
+
+            Close();
         }
 
         public long SendTextMessage(LanUser user, string text)
         {
             UdpPacket packet = new UdpPacket();
-            packet.Address = user.IP.Address;
+            packet.Address = user.IP;
             packet.Port = user.Port;
-            packet.ToMAC = user.ID;
+            packet.ToMAC = user.MAC;
             packet.Command = UdpPacket.CMD_SEND_TEXT | UdpPacket.CMD_OPTION_NEED_RESPONSE;
-            packet.FromMAC = this.IP.MAC;
+            packet.FromMAC = this.MAC;
 
             UdpPacketTextExtend extend = new UdpPacketTextExtend();
             extend.EncryptKey = user.SecurityKeys.Public;
@@ -219,17 +240,17 @@ namespace Com.LanIM
             return packet.ID;
         }
 
-        public void SendImage(LanUser user, string imagePath)
+        public long SendImage(LanUser user, string imagePath)
         {
-            SendImageCore(user, null, imagePath);
+            return SendImageCore(user, null, imagePath);
         }
 
-        public void SendImage(LanUser user, Image image)
+        public long SendImage(LanUser user, Image image)
         {
-            SendImageCore(user, image, null);
+            return SendImageCore(user, image, null);
         }
 
-        private void SendImageCore(LanUser user, Image image, string imagePath)
+        private long SendImageCore(LanUser user, Image image, string imagePath)
         {
             string path;
             if (image != null)
@@ -246,16 +267,16 @@ namespace Com.LanIM
             if (len > UdpClientEx.UDP_MAX_BUF_SIZE)
             {
                 //图像文件过大的话用文件形式发送
-                SendFile(user, path, true);
+                return SendFile(user, path, true);
             }
             else
             {
                 UdpPacket packet = new UdpPacket();
-                packet.Address = user.IP.Address;
+                packet.Address = user.IP;
                 packet.Port = user.Port;
-                packet.ToMAC = user.ID;
+                packet.ToMAC = user.MAC;
                 packet.Command = UdpPacket.CMD_SEND_IMAGE | UdpPacket.CMD_OPTION_NEED_RESPONSE;
-                packet.FromMAC = this.IP.MAC;
+                packet.FromMAC = this.MAC;
 
                 UdpPacketImageExtend extend = new UdpPacketImageExtend();
                 extend.EncryptKey = user.SecurityKeys.Public;
@@ -269,22 +290,24 @@ namespace Com.LanIM
                     //直接发送图像的话，临时图片就删除
                     LanFile.Delete(path);
                 }
+
+                return packet.ID;
             }
         }
 
-        public void SendFile(LanUser user, string path, bool bImage = false)
+        public long SendFile(LanUser user, string path, bool bImage = false)
         {
             //发送请求
             UdpPacket packet = new UdpPacket();
-            packet.Address = user.IP.Address;
+            packet.Address = user.IP;
             packet.Port = user.Port;
-            packet.ToMAC = user.ID;
+            packet.ToMAC = user.MAC;
             packet.Command = UdpPacket.CMD_SEND_FILE_REQUEST | UdpPacket.CMD_OPTION_NEED_RESPONSE;
             if(bImage)
             {
                 packet.Command |= UdpPacket.CMD_OPTION_SEND_FILE_IMAGE;
             }
-            packet.FromMAC = this.IP.MAC;
+            packet.FromMAC = this.MAC;
 
             UdpPacketSendFileRequestExtend extend = new UdpPacketSendFileRequestExtend();
             extend.EncryptKey = user.SecurityKeys.Public;
@@ -295,8 +318,10 @@ namespace Com.LanIM
             _client.Send(packet);
 
             //保存要发送文件一览
-            TransportFile file = new TransportFile(packet.ID, user.ID, user.IP.Address, user.Port, user.SecurityKeys.Public, extend.File);
+            TransportFile file = new TransportFile(packet.ID, user.MAC, user.IP, user.Port, user.SecurityKeys.Public, extend.File);
             _fileTransTcpListener.AddTransportFile(file);
+
+            return file.ID;
         }
 
         public void ReceiveFile(TransportFile file)
@@ -316,7 +341,7 @@ namespace Com.LanIM
 
         protected virtual void OnSend(UdpPacket packet, bool success)
         {
-            if(Send != null)
+            if (Send != null)
             {
                 SendEventArgs args = new SendEventArgs(packet, success);
                 Send(this, args);
@@ -336,7 +361,7 @@ namespace Com.LanIM
                     packetRsp.Address = packet.Address;
                     packetRsp.Port = packet.Port;
                     packet.ToMAC = packet.ToMAC;
-                    packetRsp.FromMAC = IP.MAC;
+                    packetRsp.FromMAC = this.MAC;
                     packetRsp.Command = UdpPacket.CMD_RESPONSE;
 
                     UdpPacketResponseExtend extend = new UdpPacketResponseExtend();
@@ -355,14 +380,19 @@ namespace Com.LanIM
             else if (packet.CMD == UdpPacket.CMD_ENTRY)
             {
                 #region CMD_ENTRY 对方上线
-                UpdateContacter(packet);
+                UpdateState updateState = UpdateContacter(packet);
+                
+                //TODO 应该更新所有的，但是跨网的时候好像发送的byte太长，不能正常发送暂且去掉头像
+                //SendUpdateStatePacket(LanIM.UpdateState.All,
+                //    packet.Address, packet.Port, packet.FromMAC);
 
-                SendUpdateStatePacket(packet.Address, packet.Port, packet.FromMAC);
+                SendUpdateStatePacket(LanIM.UpdateState.NickName | LanIM.UpdateState.PublicKey | LanIM.UpdateState.Status,
+                    packet.Address, packet.Port, packet.FromMAC);
 
                 if (UserEntry != null)
                 {
                     LanUser user = this[packet.FromMAC];
-                    UserStateChangeEventArgs stateArgs = new UserStateChangeEventArgs(user);
+                    UserStateChangeEventArgs stateArgs = new UserStateChangeEventArgs(user, updateState);
                     UserEntry(this, stateArgs);
                 }
                 #endregion
@@ -373,8 +403,8 @@ namespace Com.LanIM
                 if (UserExit != null)
                 {
                     LanUser user = this[packet.FromMAC];
-                    user.State = LanUserStatus.Offline;
-                    UserStateChangeEventArgs stateArgs = new UserStateChangeEventArgs(user);
+                    user.Status = UserStatus.Offline;
+                    UserStateChangeEventArgs stateArgs = new UserStateChangeEventArgs(user, LanIM.UpdateState.Status);
                     UserExit(this, stateArgs);
                 }
                 #endregion
@@ -382,11 +412,11 @@ namespace Com.LanIM
             else if (packet.CMD == UdpPacket.CMD_STATE)
             {
                 #region CMD_STATE
-                UpdateContacter(packet);
+                UpdateState updateState = UpdateContacter(packet);
                 if (UserStateChange != null)
                 {
                     LanUser user = this[packet.FromMAC];
-                    UserStateChangeEventArgs stateArgs = new UserStateChangeEventArgs(user);
+                    UserStateChangeEventArgs stateArgs = new UserStateChangeEventArgs(user, updateState);
                     UserStateChange(this, stateArgs);
                 }
                 #endregion
@@ -410,7 +440,7 @@ namespace Com.LanIM
                 if (ImageReceived != null)
                 {
                     LanUser user = this[packet.FromMAC];
-                    ImageReceivedEventArgs stateArgs = new ImageReceivedEventArgs(user, extend.Image);
+                    ImageReceivedEventArgs stateArgs = new ImageReceivedEventArgs(user, packet.ID, extend.Image);
                     ImageReceived(this, stateArgs);
                 }
                 #endregion
@@ -421,7 +451,7 @@ namespace Com.LanIM
                 LanUser user = this[packet.FromMAC];
                 UdpPacketSendFileRequestExtend extend = packet.Extend as UdpPacketSendFileRequestExtend;
 
-                TransportFile file = new TransportFile(packet.ID, user.ID, user.IP.Address, user.Port, user.SecurityKeys.Public, extend.File);
+                TransportFile file = new TransportFile(packet.ID, user.MAC, user.IP, user.Port, user.SecurityKeys.Public, extend.File);
 
                 if ((packet.Command & UdpPacket.CMD_OPTION_SEND_FILE_IMAGE) != 0)
                 {
@@ -452,30 +482,50 @@ namespace Com.LanIM
             }
         }
 
-        private void SendUpdateStatePacket(IPAddress remote, int port, string mac)
+        private void SendUpdateStatePacket(UpdateState state, IPAddress remote, int port, string mac)
         {
             //发送自己的信息，让发送方也更新
             UdpPacket packetRsp = new UdpPacket();
             packetRsp.Address = remote;
             packetRsp.Port = port;
             packetRsp.ToMAC = mac;
-            packetRsp.FromMAC = IP.MAC;
+            packetRsp.FromMAC = this.MAC;
             packetRsp.Command = UdpPacket.CMD_STATE;
 
-            UdpPacketEntryExtend entryExtend = new UdpPacketEntryExtend
+            UdpPacketStateExtend entryExtend = new UdpPacketStateExtend();
+            if ((state & LanIM.UpdateState.Photo) != 0)
             {
-                PublicKey = _client.SecurityKeys.Public,
-                NickName = this.NickName,
-                ProfilePhoto = ProfilePhotoPool.GetPhoto(this.ID, false)
-            };
+                packetRsp.Command |= UdpPacket.CMD_OPTION_STATE_PROFILE_PHOTO;
+                entryExtend.ProfilePhoto = ProfilePhotoPool.GetPhoto(this.ID, false);
+            }
+            if ((state & LanIM.UpdateState.NickName) != 0)
+            {
+                packetRsp.Command |= UdpPacket.CMD_OPTION_STATE_NICKNAME;
+                entryExtend.NickName = this.NickName;
+            }
+            if ((state & LanIM.UpdateState.PublicKey) != 0)
+            {
+                packetRsp.Command |= UdpPacket.CMD_OPTION_STATE_PUBKEY;
+                entryExtend.PublicKey = _client.SecurityKeys.Public;
+            }
+            if ((state & LanIM.UpdateState.Status) != 0)
+            {
+                packetRsp.Command |= UdpPacket.CMD_OPTION_STATE_STATUS;
+                entryExtend.Status = this.Status;
+            }
+
             packetRsp.Extend = entryExtend;
 
             _client.Send(packetRsp);
         }
 
-        public void UpdateState()
+        public void UpdateState(UpdateState state)
         {
-            SendUpdateStatePacket(this.IP.BroadcastAddress, this.Port, this.ID);
+            foreach (IPAddress item in this.BroadcastAddress)
+            {
+                SendUpdateStatePacket(state, item, this.Port, "");
+                Thread.Sleep(50);
+            }
         }
 
         private void ReceiveImage(LanUser user, TransportFile file)
@@ -487,33 +537,60 @@ namespace Com.LanIM
             client.Completed += new FileTransportEventHandler((sender, args)=>
             {
                 Image image = Image.FromFile(file.SavePath);
-                ImageReceivedEventArgs stateArgs = new ImageReceivedEventArgs(user, image);
+                ImageReceivedEventArgs stateArgs = new ImageReceivedEventArgs(user, file.ID, image);
                 ImageReceived(this, stateArgs);
             });
             client.Error += ImageReceiveError;
             client.Receive(file);
         }
 
-        private void UpdateContacter(UdpPacket packet)
+        private UpdateState UpdateContacter(UdpPacket packet)
         {
-            UdpPacketEntryExtend extend = packet.Extend as UdpPacketEntryExtend;
+            UdpPacketStateExtend extend = packet.Extend as UdpPacketStateExtend;
             LanUser user = this[packet.FromMAC];
-            user.SecurityKeys.Public = extend.PublicKey;
-            user.IP.MAC = packet.FromMAC;
-            user.IP.Address = packet.Address;
-            user.NickName = extend.NickName;
 
-            //更新头像
-            ProfilePhotoPool.SetPhoto(user.ID, extend.ProfilePhoto);
+            UpdateState updateState = 0;
+            if ((packet.Command & UdpPacket.CMD_OPTION_STATE_PUBKEY) != 0)
+            {
+                user.SecurityKeys.Public = extend.PublicKey;
+                updateState |= LanIM.UpdateState.PublicKey;
+            }
 
-            user.State = extend.HideState ? LanUserStatus.Offline : LanUserStatus.Online;
+            if ((packet.Command & UdpPacket.CMD_OPTION_STATE_NICKNAME) != 0)
+            {
+                user.NickName = extend.NickName;
+                updateState |= LanIM.UpdateState.NickName;
+            }
+            if ((packet.Command & UdpPacket.CMD_OPTION_STATE_PROFILE_PHOTO) != 0)
+            {
+                ProfilePhotoPool.SetPhoto(user.ID, extend.ProfilePhoto);
+                updateState |= LanIM.UpdateState.Photo;
+            }
+            if ((packet.Command & UdpPacket.CMD_OPTION_STATE_STATUS) != 0)
+            {
+                user.Status = extend.Status;
+                updateState |= LanIM.UpdateState.Status;
+            }
+            if(user.Port != packet.Port)
+            {
+                user.Port = packet.Port;
+                updateState |= LanIM.UpdateState.Port;
+            }
+            if (user.IP != packet.Address)
+            {
+                user.IP = packet.Address;
+                updateState |= LanIM.UpdateState.IP;
+            }
+
+            return updateState;
         }
 
         public override string ToString()
         {
             return string.Format("{0} [{1}][{2}][{3}]",
-                this.NickName, this.IP.MAC, this.IP.Address,
-                this.State == LanUserStatus.Online ? "在线" : this.State == LanUserStatus.Leave ? "离开" : "离线");
+                this.NickName, this.MAC, this.IP,
+                this.Status == UserStatus.Online ? "在线" : 
+                    this.Status == UserStatus.Busy ? "忙碌" : "离线");
         }
     }
 }

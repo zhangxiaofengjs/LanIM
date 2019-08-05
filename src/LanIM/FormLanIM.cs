@@ -15,16 +15,22 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using Message = Com.LanIM.Store.Models.Message;
 using Com.LanIM.UI;
+using Com.LanIM.Network.Packets;
+using Com.LanIM.Common.Network;
+using Com.LanIM.Common.Logger;
 
 namespace Com.LanIM
 {
     partial class FormLanIM : CommonForm
     {
         private LanUser _user = null;
+        private bool _trayBlinkIconFlg = false;
 
         public FormLanIM()
         {
             InitializeComponent();
+
+            this.contextMenuStripStatus.Renderer = new CommonContextMenuRender();
         }
 
         private void FormLanIM_Load(object sender, EventArgs e)
@@ -38,13 +44,13 @@ namespace Com.LanIM
             {
                 InitMainUser(context);
 
-                InitUI(context);
+                InitUserListBox(context, "");
 
                 //开始监听
                 _user.Listen();
 
                 //1秒后发送上线通知
-                Thread.Sleep(1000);
+                Thread.Sleep(800);
                 _user.Login();
             });
         }
@@ -52,15 +58,29 @@ namespace Com.LanIM
         private void InitMainUser(SynchronizationContext context)
         {
             _user = new LanUser(context);
-            _user.IP = IPv4Address.GetLocalMachineIPV4();
+
+            if (LanConfig.Instance.HideStatus)
+            {
+                _user.Status = UserStatus.Offline;
+            }
+            else
+            {
+                _user.Status = UserStatus.Online;
+            }
+            _user.MAC = LanConfig.Instance.MAC;
+            _user.IP = NCIInfo.GetIPAddress(LanConfig.Instance.MAC);
+            _user.BroadcastAddress = LanConfig.Instance.BroadcastAddress;
             _user.NickName = LanConfig.Instance.NickName;
-            _user.State = LanUserStatus.Online;
+
+            //events
             _user.UserEntry += _user_UserEntry;
             _user.UserExit += _user_UserExit;
             _user.UserStateChange += _user_UserStateChange;
             _user.Send += _user_Send;
             _user.TextMessageReceived += _user_TextMessageReceived;
             _user.ImageReceived += _user_ImageReceived;
+            _user.ImageReceiveError += _user_ImageReceiveError;
+            _user.ImageReceiveProgressChanged += _user_ImageReceiveProgressChanged;
             _user.FileTransportRequested += _user_FileTransportRequested;
             _user.FileReceiveProgressChanged += _user_FileReceiveProgressChanged;
             _user.FileReceiveCompleted += _user_FileReceiveCompleted;
@@ -68,7 +88,22 @@ namespace Com.LanIM
             _user.FileSendProgressChanged += _user_FileSendProgressChanged;
             _user.FileSendCompleted += _user_FileSendCompleted;
             _user.FileSendError += _user_FileSendError;
+
+            //加载用户列表
             LoadContacters();
+        }
+
+        private void _user_ImageReceiveProgressChanged(object sender, FileTransportEventArgs args)
+        {
+            //因为接收速度很快，暂未对应图片的接受进度
+        }
+
+        private void _user_ImageReceiveError(object sender, FileTransportErrorEventArgs args)
+        {
+            TransportFile file = args.File;
+            LanUser user = _user[args.File.MAC];
+
+            this.userListBox.SetMessageResult(user.ID, _user.ID, file.ID, false);
         }
 
         private void LoadContacters()
@@ -79,22 +114,22 @@ namespace Com.LanIM
             foreach (Contacter contacter in cs)
             {
                 LanUser user = new LanUser();
-                user.NickName = contacter.NickName;
-                user.IP.MAC = contacter.MAC;
-                user.IP.Address = IPv4Address.Parse(contacter.IP);
-
+                user.Contacter = contacter;
                 _user.Contacters.Add(user);
             }
         }
 
-        private void InitUI(SynchronizationContext context)
+        private void InitUserListBox(SynchronizationContext context, string filterNickName)
         {
             //task线程调用更新主界面
             context.Post((state) =>
             {
                 pictureBoxFace.Image = ProfilePhotoPool.GetPhoto(_user.ID);
                 labelName.Text = _user.NickName;
-                labelStatus.Text = "在线中...";
+
+                UpdateUserStatus();
+
+                userListBox.OwnerUser = _user;
 
                 List<UserListItem> ulItems = new List<UserListItem>();
 
@@ -105,81 +140,81 @@ namespace Com.LanIM
                         //忽视自己
                         continue;
                     }
-                    ulItems.Add(new UserListItem(user));
+                    if (user.NickName.Contains(filterNickName))
+                    {
+                        ulItems.Add(new UserListItem(user));
+                    }
                 }
-
+                userListBox.Items.Clear();
                 userListBox.Items.AddRange(ulItems);
             }, null);
         }
 
         private void _user_FileReceiveError(object sender, FileTransportErrorEventArgs args)
         {
+            TransportFile file = args.File;
+            LanUser user = _user[args.File.MAC];
+
+            this.userListBox.SetMessageResult(user.ID, _user.ID, file.ID, false);
         }
 
         private void _user_FileSendError(object sender, FileTransportErrorEventArgs args)
         {
+            TransportFile file = args.File;
+            this.userListBox.SetMessageResult(_user.ID, file.MAC, file.ID, false);
         }
 
         private void _user_FileSendCompleted(object sender, FileTransportEventArgs args)
         {
-
+            TransportFile file = args.File;
+            this.userListBox.SetFileTransportProgress(file);
         }
 
         private void _user_FileReceiveCompleted(object sender, FileTransportEventArgs args)
         {
-            UserChatControl ucc = GetUserChatControl(_user[args.File.MAC]);
-            ucc.AddFileMessage(args.File.SavePath);
+            TransportFile file = args.File;
+            this.userListBox.SetFileTransportProgress(file);
         }
 
         private void _user_FileSendProgressChanged(object sender, FileTransportEventArgs args)
         {
             TransportFile file = args.File;
-            //OutputLog("发送文件[" + file.File.Name + "]," + file.Progress + "%," +
-            //    LanFile.HumanReadbleLen(file.TransportedLength) + "/" +
-            //    LanFile.HumanReadbleLen(file.File.Length) + "," +
-            //    LanFile.HumanReadbleLen(file.TransportedSpeed) + "/s");
+            this.userListBox.SetFileTransportProgress(file);
         }
 
         private void _user_FileReceiveProgressChanged(object sender, FileTransportEventArgs args)
         {
             TransportFile file = args.File;
-            //OutputLog("接收文件[" + file.File.Name + "]," + file.Progress + "%," +
-            //    LanFile.HumanReadbleLen(file.TransportedLength) + "/" +
-            //    LanFile.HumanReadbleLen(file.File.Length) + "," +
-            //    LanFile.HumanReadbleLen(file.TransportedSpeed) + "/s");
+            this.userListBox.SetFileTransportProgress(file);
         }
 
         private void _user_FileTransportRequested(object sender, FileTransportRequestedEventArgs args)
         {
-            if (MessageBox.Show("是否接受文件：\r\nFrom:" + args.User + "\r\nFile:" + args.File, "", MessageBoxButtons.YesNo) ==
-                DialogResult.Yes)
-            {
-                SaveFileDialog sfd = new SaveFileDialog();
-                if (sfd.ShowDialog() == DialogResult.OK)
-                {
-                    TransportFile file = args.File;
-                    file.SavePath = LanConfig.Instance.ReceivedFilePath;
-                    _user.ReceiveFile(file);
-                }
-            }
-            else
-            {
-                //_user.RejectReceiveFile(args.ID);
-            }
+            TransportFile file = args.File;
+            //保存到默认接收文件夹
+            file.SavePath = LanConfig.Instance.GetReceivedFilePath(file.File.Name);
+
+            this.userListBox.AddFileReceivingMessage(args.User, file);
+
+            //自动接收文件
+            _user.ReceiveFile(file);
+
+            UpdateUnreadMessageUI();
         }
 
         private void _user_TextMessageReceived(object sender, TextMessageReceivedEventArgs args)
         {
-            UserChatControl ucc = GetUserChatControl(args.User);
-            ucc.AddTextMessage(args.ID, args.Message);
+            this.userListBox.AddReceivedTextMessage(args.User, args.ID, args.Message);
+            UpdateUnreadMessageUI();
         }
 
         private void _user_Send(object sender, SendEventArgs args)
         {
-            LanUser user = _user[args.Packet.ToMAC];
-            UserChatControl ucc = GetUserChatControl(user);
-
-            ucc.SetMessageSendResult(args.Packet.ID, args.Success);
+            if (args.IsUserPacket)
+            {
+                //此处需要处理分为txt，image，file传送，其他的发送结果用户应不关心
+                this.userListBox.SetMessageResult(args.Packet.FromMAC, args.Packet.ToMAC, args.Packet.ID, args.Success);
+            }
         }
 
         private void _user_UserStateChange(object sender, UserStateChangeEventArgs args)
@@ -200,80 +235,56 @@ namespace Com.LanIM
         private void UpdateContacter(UserStateChangeEventArgs args)
         {
             LanUser user = args.User;
-            if(user.ID == _user.ID)
+            if (user.ID == _user.ID)
             {
                 //自己就忽略掉，本身也不显示在list里面
                 return;
             }
-
-            if (userListBox.ContainsUser(user))
-            {
-                userListBox.UpdateUser(user);
-            }
-            else
-            {
-                userListBox.AddUser(user);
-            }
-
-            UserChatControl ucc = GetUserChatControl(user, false);
-            if (ucc != null)
-            {
-                ucc.Contacter = user;
-            }
+            userListBox.AddOrUpdateUser(user, args.UpdateState);
         }
 
         private void _user_ImageReceived(object sender, ImageReceivedEventArgs args)
         {
-            UserChatControl ucc = GetUserChatControl(args.User);
-            ucc.AddImageMessage(args.Image);
+            this.userListBox.AddReceivedImageMessage(args.User, args.ID, args.Image);
+            UpdateUnreadMessageUI();
         }
 
         private void UserListBox_SelectionChanged(object sender, System.EventArgs e)
         {
-            LanUser user = this.userListBox.SelectedUser;
+            UserListItem item = this.userListBox.SelectedItem as UserListItem;
+
+            LanUser user = item.User;
             if (user == null)
             {
                 return;
             }
 
             labelUserName.Text = user.NickName;
-            UserChatControl ucc = GetUserChatControl(user);
-            ucc.BringToFront();
-        }
 
-        private UserChatControl GetUserChatControl(LanUser user, bool bNullCreate = true)
-        {
-            UserChatControl ucc = null;
-            foreach (Control c in this.Controls)
-            {
-                if (c is UserChatControl)
-                {
-                    UserChatControl uccTmp = c as UserChatControl;
-                    if (uccTmp.Contacter.ID == user.ID)
-                    {
-                        ucc = uccTmp;
-                        break;
-                    }
-                }
-            }
-
-            //不存在创建
-            if (ucc == null && bNullCreate)
+            UserChatControl ucc = item.ChatControl;
+            if (ucc == null)
             {
                 ucc = new UserChatControl();
                 ucc.Anchor = AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Right | AnchorStyles.Bottom;
                 ucc.User = _user;
                 ucc.Contacter = user;
-                ucc.InitializeLatastMessage();
+                ucc.SendMessageEnabled = user.Status != UserStatus.Offline;
+                ucc.SendMessage += Ucc_SendMessage;
+                ucc.InitializeLatastMessage(item.WaitDisplayMessages);
+                //显示到界面后，缓存就清理掉
+                item.WaitDisplayMessages.Clear();
                 this.Controls.Add(ucc);
-            }
 
-            if (ucc != null)
-            {
-                ucc.Location = new Point(this.searchBox.Right, searchBox.Top + 1);
-                ucc.Size = new Size(this.ClientSize.Width - this.searchBox.Right - 1, this.ClientSize.Height - searchBox.Top - 2);
+                item.ChatControl = ucc;
             }
-            return ucc;
+            ucc.Location = new Point(this.searchBox.Right, searchBox.Top + 1);
+            ucc.Size = new Size(this.ClientSize.Width - this.searchBox.Right - 1, this.ClientSize.Height - searchBox.Top - 2);
+            ucc.BringToFront();
+        }
+
+        private void Ucc_SendMessage(object sender, SendMessageEventArgs args)
+        {
+            this.userListBox.UpdateItemOnSendMessage(args.Message);
         }
 
         private void pictureBoxFace_Click(object sender, EventArgs e)
@@ -285,6 +296,155 @@ namespace Com.LanIM
             //更新头像等一系列
             pictureBoxFace.Image = ProfilePhotoPool.GetPhoto(_user.ID);
             labelName.Text = _user.NickName;
+        }
+
+        private void toolStripMenuItemStatus_Click(object sender, EventArgs e)
+        {
+            if (sender == toolStripMenuItemStatusBusy)
+            {
+                LanConfig.Instance.HideStatus = false;
+                _user.Status = UserStatus.Busy;
+            }
+            else if (sender == toolStripMenuItemStatusOnline)
+            {
+                LanConfig.Instance.HideStatus = false;
+                _user.Status = UserStatus.Online;
+            }
+            else if (sender == this.toolStripMenuItemStatusHide)
+            {
+                LanConfig.Instance.HideStatus = true;
+                _user.Status = UserStatus.Offline;
+            }
+            else
+            {
+                return;
+            }
+
+            _user.UpdateState(UpdateState.Status);
+
+            UpdateUserStatus();
+        }
+
+        private void UpdateUserStatus()
+        {
+            if (_user.Status ==  UserStatus.Busy)
+            {
+                this.labelStatus.Text = "忙碌中...";
+            }
+            else if(_user.Status ==  UserStatus.Online)
+            {
+                this.labelStatus.Text = "在线中...";
+            }
+            else
+            {
+                LanConfig.Instance.HideStatus = true;
+                _user.Status = UserStatus.Offline;
+                this.labelStatus.Text = "隐身中...";
+            }
+           
+            this.pictureBoxFace.UserStatus = _user.Status;
+            this.pictureBoxFace.Refresh();
+        }
+
+        private void labelStatus_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            contextMenuStripStatus.Show(this.labelStatus, new Point(0, this.labelStatus.Height));
+        }
+
+        private void contextMenuStripStatus_Opening(object sender, CancelEventArgs e)
+        {
+            //更新下菜单的Check状态
+            foreach (ToolStripItem item in contextMenuStripStatus.Items)
+            {
+                if (item is ToolStripMenuItem)
+                {
+                    ToolStripMenuItem menu = item as ToolStripMenuItem;
+                    menu.Checked = false;
+                }
+            }
+
+            switch (_user.Status)
+            {
+                case UserStatus.Online: toolStripMenuItemStatusOnline.Checked = true; break;
+                case UserStatus.Busy: toolStripMenuItemStatusBusy.Checked = true; break;
+                default:
+                    if (LanConfig.Instance.HideStatus)
+                    {
+                        toolStripMenuItemStatusHide.Checked = true;
+                    }
+                    else
+                    {
+                        toolStripMenuItemStatusOnline.Checked = true; break;
+                    }
+                    break;
+            }
+        }
+
+        private void searchBox_SearchTextChanged(object sender, SearchEventArgs e)
+        {
+            SynchronizationContext context = SynchronizationContext.Current;
+            InitUserListBox(context, e.Text);
+        }
+
+        private void FormLanIM_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            //TODO 保存一些必要信息
+            //检测 还有缓存中正在接受的文件之类，发送消息未收到回复的标记失败等
+
+            //登出
+            _user.Exit();
+
+            //退出时，把托盘清理一下
+            this.notifyIcon.Visible = false;
+        }
+
+        private void timer_Tick(object sender, EventArgs e)
+        {
+            this.notifyIcon.Icon = _trayBlinkIconFlg ? Properties.Resources.tray : Properties.Resources.tray_trans;
+            _trayBlinkIconFlg = !_trayBlinkIconFlg;
+        }
+
+        /// <summary>
+        /// 未读消息时，界面表示的变化
+        /// </summary>
+        private void UpdateUnreadMessageUI()
+        {
+            int count = this.userListBox.UnreadMessageCount;
+
+            //托盘 闪烁
+            if (count != 0 || !this.IsActived)
+            {
+                timer.Start();
+            }
+            else
+            {
+                timer.Stop();
+                this.notifyIcon.Icon = Properties.Resources.tray;
+            }
+
+            //任务栏 暂时默默的无动作，以后考虑更换图标
+            this.Icon = LanImage.CreateNumberIcon(Properties.Resources.tray, count);
+        }
+
+        private void userListBox_ItemClicked(object sender, ItemClickedEventArgs args)
+        {
+            //点击头像代表已经读了吧
+            UserListItem userItem = args.Item as UserListItem;
+            userItem.UnreadMessageCount = 0;
+
+            UpdateUnreadMessageUI();
+        }
+
+        private void FormLanIM_Activated(object sender, EventArgs e)
+        {
+            //窗口激活后就不进行闪烁了
+            timer.Stop();
+            this.notifyIcon.Icon = Properties.Resources.tray;
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            LoggerFactory.Flush();
         }
     }
 }

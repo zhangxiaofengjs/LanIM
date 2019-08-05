@@ -12,18 +12,29 @@ namespace Com.LanIM.UI
         private const int DEFAULT_ITEM_HEIGHT = 56;
 
         //项目的区域（不包含在父控件中的滑块偏移量）
-        public Rectangle Bounds { get; set; }
-        public int Height
+        public int X { get; set; }
+        public int Y { get; set; }
+        public int Width { get; set; }
+        public int Height { get; set; }
+        public Size Size
         {
             get
             {
-                return Bounds.Height;
+                return new Size(this.Width, this.Height);
             }
         }
+        public Rectangle Bounds
+        {
+            get
+            {
+                return new Rectangle(new Point(X, Y), Size);
+            }
+        }
+        
         internal bool Selected { get; set; }
         public ScrollableListItem()
         {
-            this.Bounds = new Rectangle(0,0, 0, DEFAULT_ITEM_HEIGHT);
+            this.Height = DEFAULT_ITEM_HEIGHT;
             this.Selected = false;
         }
     }

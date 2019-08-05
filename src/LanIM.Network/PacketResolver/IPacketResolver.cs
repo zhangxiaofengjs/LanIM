@@ -7,7 +7,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Com.LanIM.Network.PacketsResolver
+namespace Com.LanIM.Network.PacketResolver
 {
     public interface IPacketResolver
     {

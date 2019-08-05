@@ -8,14 +8,19 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Com.LanIM
+namespace Com.LanIM.UI
 {
-    class ProfilePhotoPool
+    public class ProfilePhotoPool
     {
         private static Dictionary<string, Image> _cache = new Dictionary<string, Image>();
 
         public static Image GetPhoto(string key, bool returnDefaultOnNull = true)
         {
+            if(string.IsNullOrEmpty(key))
+            {
+                return returnDefaultOnNull ? Properties.Resources.default_photo : null;
+            }
+
             if (_cache.TryGetValue(key, out Image img))
             {
                 return img;
@@ -37,22 +42,15 @@ namespace Com.LanIM
 
             if (returnDefaultOnNull)
             {
-                return Properties.Resources.logo;
+                return Properties.Resources.default_photo;
             }
             return null;
         }
 
         public static void SetPhoto(string key, Image img)
         {
-            //先删除key，否则占用资源下面不好重新覆盖
-            //Image image = GetPhoto(key, false);
-            //if(image != null)
-            //{
-            //    image.Dispose();
-            //    image = null;
-            //}
-
             string fileName = Path.Combine(LanConfig.Instance.ProfilePhotoPath, key);
+            _cache.Remove(key);
             LanFile.Delete(fileName);
 
             if (img == null)
@@ -68,7 +66,7 @@ namespace Com.LanIM
                 {
                     g.DrawImageUnscaled(img, 0, 0);
                 }
-                bmp.Save(fileName, ImageFormat.Png);
+                bmp.Save(fileName, ImageFormat.Jpeg);
             }
         }
 

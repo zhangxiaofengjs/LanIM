@@ -1,5 +1,7 @@
-﻿using Com.LanIM.Network;
+﻿using Com.LanIM.Common.Network;
+using Com.LanIM.Network;
 using Com.LanIM.Network.Packets;
+using Com.LanIM.Store.Models;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -10,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace Com.LanIM
 {
-    public class LanIMUserEventArgs
+    class LanIMUserEventArgs
     {
         private readonly LanUser _user;
         public LanUser User
@@ -49,6 +51,24 @@ namespace Com.LanIM
             }
         }
 
+        /// <summary>
+        /// 是否用户需要明示的包
+        /// </summary>
+        public bool IsUserPacket
+        {
+            get
+            {
+                switch (base.Packet.CMD)
+                {
+                    case UdpPacket.CMD_SEND_TEXT:
+                    case UdpPacket.CMD_SEND_IMAGE:
+                    case UdpPacket.CMD_SEND_FILE_REQUEST:
+                        return true;
+                    default: return false;
+                }
+            }
+        }
+
         public SendEventArgs(UdpPacket packet, bool success)
        : base(packet)
         {
@@ -56,15 +76,17 @@ namespace Com.LanIM
         }
     }
 
-    public class UserStateChangeEventArgs : LanIMUserEventArgs
+    class UserStateChangeEventArgs : LanIMUserEventArgs
     {
-        public UserStateChangeEventArgs(LanUser user)
+        public UpdateState UpdateState { get; }
+        public UserStateChangeEventArgs(LanUser user, UpdateState updateState)
             :base(user)
         {
+            this.UpdateState = updateState;
         }
     }
 
-    public class TextMessageReceivedEventArgs : LanIMUserEventArgs
+    class TextMessageReceivedEventArgs : LanIMUserEventArgs
     {
         public long ID { get; }
 
@@ -78,23 +100,25 @@ namespace Com.LanIM
         }
     }
 
-    public class ImageReceivedEventArgs : LanIMUserEventArgs
+    class ImageReceivedEventArgs : LanIMUserEventArgs
     {
         private readonly Image _image;
+
+        public long ID { get; }
 
         public Image Image
         {
             get { return _image; }
         }
 
-        public ImageReceivedEventArgs(LanUser user, Image image)
+        public ImageReceivedEventArgs(LanUser user, long id, Image image)
             : base(user)
         {
             _image = image;
         }
     }
 
-    public class FileTransportRequestedEventArgs : LanIMUserEventArgs
+    class FileTransportRequestedEventArgs : LanIMUserEventArgs
     {
         private readonly TransportFile _file;
 
@@ -113,6 +137,36 @@ namespace Com.LanIM
         {
             return string.Format("{{user={0}, file={1}}}",
                 this.User, this.File);
+        }
+    }
+
+    public class ImageEventArgs
+    {
+        public Image Image { get; }
+
+        public ImageEventArgs(Image image)
+        {
+            this.Image = image;
+        }
+    }
+
+    public class NCIInfoEventArgs
+    {
+        public NCIInfo NCIInfo { get; }
+
+        public NCIInfoEventArgs(NCIInfo n)
+        {
+            this.NCIInfo = n;
+        }
+    }
+
+    public class SendMessageEventArgs
+    {
+        public Message Message { get; }
+
+        public SendMessageEventArgs(Message n)
+        {
+            this.Message = n;
         }
     }
 }

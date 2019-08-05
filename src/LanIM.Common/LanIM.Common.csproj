@@ -8,10 +8,11 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Com.LanIM.Common</RootNamespace>
     <AssemblyName>cmn</AssemblyName>
-    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Deterministic>true</Deterministic>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup>
     <StartupObject />
@@ -82,8 +83,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Network\NCIInfo.cs" />
     <Compile Include="LanColor.cs" />
     <Compile Include="LanConfig.cs" />
+    <Compile Include="LanImage.cs" />
     <Compile Include="Logger\ILogger.cs" />
     <Compile Include="Logger\LoggerFactory.cs" />
     <Compile Include="Logger\LoggerFormater.cs" />
@@ -91,12 +94,15 @@
     <Compile Include="Logger\ConsoleLogger.cs" />
     <Compile Include="Logger\SimpleTextLogger.cs" />
     <Compile Include="LanFile.cs" />
+    <Compile Include="Network\NetworkCardInterface.cs" />
+    <Compile Include="Network\NCIType.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Security\MD5.cs" />
     <Compile Include="Security\DES.cs" />
     <Compile Include="Security\SecurityKeys.cs" />
     <Compile Include="Security\RSA.cs" />
     <Compile Include="Security\SecurityFactory.cs" />
+    <Compile Include="UserStatus.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

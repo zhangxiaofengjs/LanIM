@@ -1,6 +1,4 @@
 ﻿using Com.LanIM.Common;
-using Com.LanIM.Network;
-using Com.LanIM.Network.Packets;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -16,12 +14,10 @@ namespace Com.LanIM.UI
     {
         public Graphics Graphics { get; }
         public ScrollableListItem Item { get; }
-        public int Index { get; }
         public Font Font { get; set; }
 
-        public MeasureItemEventArgs(int index, ScrollableListItem item, Graphics g, Font font)
+        public MeasureItemEventArgs(ScrollableListItem item, Graphics g, Font font)
         {
-            this.Index = index;
             this.Item = item;
             this.Graphics = g;
             this.Font = font;
@@ -32,8 +28,6 @@ namespace Com.LanIM.UI
     {
         public Graphics Graphics { get; }
         public ScrollableListItem Item { get; }
-        public int Index { get; }
-        public Rectangle Bounds { get; }
         public Font Font{ get; set; }
         public Color ForeColor { get; set; }
         public Color BackColor { get; set; }
@@ -42,14 +36,12 @@ namespace Com.LanIM.UI
         public bool Focus { get; }
         public bool Selected { get; }
 
-        public DrawItemEventArgs(int index, ScrollableListItem item, 
-            Graphics g, Rectangle itemBounds, bool focus, bool selected,
+        public DrawItemEventArgs(ScrollableListItem item, 
+            Graphics g, bool focus, bool selected,
             Font font, Color foreColor, Color backColor)
         {
-            this.Index = index;
             this.Item = item;
             this.Graphics = g;
-            this.Bounds = itemBounds;
             this.Font = font;
             this.ForeColor = foreColor;
             this.BackColor = backColor;
@@ -64,7 +56,7 @@ namespace Com.LanIM.UI
             using (Brush brush = new SolidBrush(this.Selected ? this.SelectedBackColor : 
                 this.Focus ? this.FocusBackColor : this.BackColor))
             {
-                this.Graphics.FillRectangle(brush, this.Bounds);
+                this.Graphics.FillRectangle(brush, this.Item.Bounds);
             }
         }
     }
@@ -91,6 +83,15 @@ namespace Com.LanIM.UI
         {
             this.Item = item;
             this.Location = loc;
+        }
+    }
+    public class SearchEventArgs
+    {
+        public string Text { get; }
+
+        public SearchEventArgs(string text)
+        {
+            this.Text = text;
         }
     }
 }

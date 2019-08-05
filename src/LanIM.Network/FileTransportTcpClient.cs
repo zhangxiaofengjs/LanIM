@@ -2,7 +2,7 @@
 using Com.LanIM.Common.Logger;
 using Com.LanIM.Common.Security;
 using Com.LanIM.Network.Packets;
-using Com.LanIM.Network.PacketsEncoder;
+using Com.LanIM.Network.PacketEncoder;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -86,7 +86,7 @@ namespace Com.LanIM.Network
 
                 LoggerFactory.Debug("encode packet, request file:id={0}", file.ID);
                 TcpPacket packet = null;
-                byte[] buff = null;
+                EncodeResult result = null;
                 try
                 {
                     //发送要接受的文件ID
@@ -103,7 +103,7 @@ namespace Com.LanIM.Network
                     };
 
                     IPacketEncoder encoder = PacketEncoderFactory.CreateEncoder(packet);
-                    buff = encoder.Encode();
+                    result = encoder.Encode(null);
                 }
                 catch (Exception e)
                 {
@@ -114,7 +114,7 @@ namespace Com.LanIM.Network
                 LoggerFactory.Debug("send packet, request file:id={0}", file.ID);
                 try
                 {
-                    ns.Write(buff, 0, buff.Length);
+                    ns.Write(result.Fragments[0], 0, result.Fragments[0].Length);
                 }
                 catch(Exception e)
                 {
@@ -129,7 +129,7 @@ namespace Com.LanIM.Network
                     file.StartTransport();
                     long lastProgressTicks = file.NowTransportTicks;
 
-                    buff = new byte[this.ReceiveBufferSize];
+                    byte[] buff = new byte[this.ReceiveBufferSize];
                     while ((len = ns.Read(buff, 0, buff.Length)) != 0)
                     {
                         fs.Write(buff, 0, len);
@@ -216,7 +216,7 @@ namespace Com.LanIM.Network
 
         protected virtual void OnError(Errors error, string message, TransportFile file, Exception e)
         {
-            LoggerFactory.Error("{0}, file={1}, exception={2}", message, file);
+            LoggerFactory.Error("{0}, file={1}, exception={2}", message, file, e);
             FileTransportErrorEventArgs args = new FileTransportErrorEventArgs(error, message, file, e);
             if (_context == null)
             {

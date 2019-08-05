@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Com.LanIM.Network
 {
-    class WaitTimer
+    public class WaitTimer
     {
         private Timer _timer;
         private TimerCallback _callback;

@@ -9,9 +9,10 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Com.LanIM.Network</RootNamespace>
     <AssemblyName>net</AssemblyName>
-    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
     <DebugSymbols>true</DebugSymbols>
@@ -82,11 +83,12 @@
     <Compile Include="Errors.cs" />
     <Compile Include="FileTransportTcpListener.cs" />
     <Compile Include="PacketEncoder\DefaultTcpPacketEncoder.cs" />
+    <Compile Include="PacketEncoder\EncodeResult.cs" />
     <Compile Include="PacketResolver\DefaultTcpPacketResolver.cs" />
+    <Compile Include="Packets\MultiUdpPacket.cs" />
     <Compile Include="Packets\Packet.cs" />
     <Compile Include="Packets\TcpPacket.cs" />
     <Compile Include="TransportFile.cs" />
-    <Compile Include="NetworkCardInterfaceType.cs" />
     <Compile Include="PacketEncoder\DefaultUdpPacketEncoder.cs" />
     <Compile Include="PacketEncoder\IPMsgUdpPacketEncoder.cs" />
     <Compile Include="PacketEncoder\IPacketEncoder.cs" />
@@ -95,15 +97,13 @@
     <Compile Include="PacketResolver\PacketResolverFactory.cs" />
     <Compile Include="PacketResolver\DefaultUdpPacketResolver.cs" />
     <Compile Include="Packets\IPMsgUdpPacket.cs" />
-    <Compile Include="IPv4Address.cs" />
-    <Compile Include="NetworkCardInterface.cs" />
     <Compile Include="PacketResolver\IPMsgUdpPacketResolver.cs" />
     <Compile Include="Packets\TcpPacketRequestFileTransportExtend.cs" />
     <Compile Include="Packets\UdpPacketResponseExtend.cs" />
     <Compile Include="Packets\UdpPacketImageExtend.cs" />
     <Compile Include="Packets\UdpPacketSendFileRequestExtend.cs" />
     <Compile Include="Packets\UdpPacketTextExtend.cs" />
-    <Compile Include="Packets\UdpPacketEntryExtend.cs" />
+    <Compile Include="Packets\UdpPacketStateExtend.cs" />
     <Compile Include="Packets\UdpPacket.cs" />
     <Compile Include="FileTransportTcpClient.cs" />
     <Compile Include="UdpClientEx.cs" />

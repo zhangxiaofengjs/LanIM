@@ -7,7 +7,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Com.LanIM.Network.PacketsResolver
+namespace Com.LanIM.Network.PacketResolver
 {
     //兼容IPMsg 3.42的包格式的解析类
     public class IPMsgUdpPacketResolver : IPacketResolver

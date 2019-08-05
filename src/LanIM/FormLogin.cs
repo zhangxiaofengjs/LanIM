@@ -11,6 +11,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Com.LanIM.UI;
+using Com.LanIM.Common.Network;
 
 namespace Com.LanIM
 {
@@ -39,15 +40,45 @@ namespace Com.LanIM
 
         private void FormLogin_Load(object sender, EventArgs e)
         {
-            IPv4Address ip = IPv4Address.GetLocalMachineIPV4();
+            List<NCIInfo> nciInfos = NCIInfo.GetNICInfo( NCIType.Physical | NCIType.Wireless);
+            NCIInfo nciInfo = nciInfos.Find(new Predicate<NCIInfo>((item) =>
+            {
+                if (item.MAC == LanConfig.Instance.MAC)
+                {
+                    return true;
+                }
+                return false;
+            }));
 
-            pictureBox.Image = ProfilePhotoPool.GetPhoto(ip.MAC);
-            labelLogin.Text = Environment.UserName;
+            if(nciInfo == null)
+            {
+                if(nciInfos.Count >= 1)
+                {
+                    nciInfo = nciInfos[0];
+                    LanConfig.Instance.MAC = nciInfo.MAC;
+                }
+            }
+
+            pictureBox.Image = ProfilePhotoPool.GetPhoto(LanConfig.Instance.MAC);
+            labelLogin.Text = LanConfig.Instance.NickName;
+            labelNIC.Text = nciInfo.Name;
         }
 
         private void pictureBox_Click(object sender, EventArgs e)
         {
+            this.DialogResult = DialogResult.OK;
             this.Close();
+        }
+
+        private void linkLabelMAC_Clicked(object sender, EventArgs e)
+        {
+            contextMenuStripMAC.Show(this.linkLabelMAC, this.linkLabelMAC.Left, this.linkLabelMAC.Height);
+        }
+
+        private void ContextMenuStripMAC_NCIInfoSelected(object sender, NCIInfoEventArgs args)
+        {
+            labelNIC.Text = args.NCIInfo.Name;
+            LanConfig.Instance.MAC = args.NCIInfo.MAC;
         }
     }
 }

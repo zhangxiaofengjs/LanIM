@@ -2,7 +2,7 @@
 using Com.LanIM.Common.Logger;
 using Com.LanIM.Common.Security;
 using Com.LanIM.Network.Packets;
-using Com.LanIM.Network.PacketsResolver;
+using Com.LanIM.Network.PacketResolver;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -302,6 +302,12 @@ namespace Com.LanIM.Network
         {
             LoggerFactory.Debug("add ready send file={0}", file);
             _transportFileDic.TryAdd(file.ID, file);
+
+            //TODO
+            //if(_transportFileDic.Count > MAX_COUNT)
+            //{
+            //    //移除那些时间比较久的
+            //}
         }
     }
 }

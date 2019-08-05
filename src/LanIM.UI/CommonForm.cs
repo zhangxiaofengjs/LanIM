@@ -9,21 +9,6 @@ namespace Com.LanIM.UI
 {
    public class CommonForm : Form
     {
-        private const int WM_NCHITTEST = 0x84;
-        private const int WM_NCLBUTTONDBLCLK = 0xa3;
-        private const int HTCLIENT = 0x0001;
-        private const int HTCAPTION = 0x0002;
-        private const int HTLEFT = 10;
-        private const int HTRIGHT = 11;
-        private const int HTTOP = 12;
-        private const int HTTOPLEFT = 13;
-        private const int HTTOPRIGHT = 14;
-        private const int HTBOTTOM = 15;
-        private const int HTBOTTOMLEFT = 16;
-        private const int HTBOTTOMRIGHT = 17;
-        private const int SC_MAXIMIZE = 0xF030;//最大化信息
-        private const int SC_MINIMIZE = 0xF020;//最小化信息
-
         private const int CAPTION_HEIGHT = 25;
         private const int FORM_BUTTON_WIDTH = 34;
         private const int FORM_BUTTON_HEIGHT = CAPTION_HEIGHT;
@@ -33,6 +18,8 @@ namespace Com.LanIM.UI
         private List<FormButton> _formButtons = new List<FormButton>();
         private Rectangle _formButtonsBounds = Rectangle.Empty;
 
+        private bool _isActived;
+        public bool IsActived { get { return _isActived; } }
         protected override CreateParams CreateParams //点击任务栏实现最小化与还原
         {
             get
@@ -42,7 +29,7 @@ namespace Com.LanIM.UI
                 cp.Style = cp.Style | WS_MINIMIZEBOX;   // 允许最小化操作  
                 return cp;
             }
-        } 
+        }
 
         public CommonForm()
         {
@@ -58,12 +45,26 @@ namespace Com.LanIM.UI
             this.FormBorderStyle = FormBorderStyle.None;
             this.Padding = new Padding(5, CAPTION_HEIGHT, 5, 5);
             this.MaximizedBounds = System.Windows.Forms.Screen.PrimaryScreen.WorkingArea;
-
-            _formButtons.Add(new CloseFormButton(this));
-            _formButtons.Add(new MaximizeFormButton(this));
-            _formButtons.Add(new MinimizeFormButton(this));
         }
 
+        protected override void OnHandleCreated(EventArgs e)
+        {
+            base.OnHandleCreated(e);
+
+            if (this.ControlBox)
+            {
+                _formButtons.Add(new CloseFormButton(this));
+
+                if (this.MaximizeBox)
+                {
+                    _formButtons.Add(new MaximizeFormButton(this));
+                }
+                if (this.MinimizeBox)
+                {
+                    _formButtons.Add(new MinimizeFormButton(this));
+                }
+            }
+        }
         protected override void OnResize(EventArgs e)
         {
             base.OnResize(e);
@@ -127,14 +128,27 @@ namespace Com.LanIM.UI
         {
             switch (m.Msg)
             {
-                case WM_NCHITTEST:
+                case WindowsConstants.WM_NCACTIVATE:
+                    //return;
+                    break;
+                case WindowsConstants.WM_NCHITTEST:
                     // 拉伸，调整窗口大小或者移动
                     if (ResizeOrMove(ref m)) { return; }
                     break;
-                case WM_NCLBUTTONDBLCLK:
+                case WindowsConstants.WM_NCLBUTTONDBLCLK:
                     //双击窗口标题栏，最大化之类
-                    this.WindowState = (this.WindowState == FormWindowState.Normal ? 
-                        FormWindowState.Maximized : FormWindowState.Normal);
+                    if (this.MaximizeBox && this.WindowState != FormWindowState.Maximized)
+                    {
+                        //多屏幕对应，设定最大尺寸
+                        Rectangle rect = System.Windows.Forms.Screen.GetWorkingArea(this.Location);
+                        this.MaximizedBounds = new Rectangle(0, 0, rect.Width, rect.Height);
+
+                        this.WindowState = FormWindowState.Maximized;
+                    }
+                    else if (this.WindowState == FormWindowState.Maximized)
+                    {
+                        this.WindowState = FormWindowState.Normal;
+                    }
                     return;
             }
 
@@ -149,7 +163,8 @@ namespace Com.LanIM.UI
                 //return false;
             }
 
-        Point vPoint = new Point((int)m.LParam & 0xFFFF, (int)m.LParam >> 16 & 0xFFFF);
+            Point vPoint = WindowsAPI.MAKEPOINT(m.LParam);
+
             vPoint = PointToClient(vPoint);
             int posInterval = 5;
             if (vPoint.X <= posInterval)
@@ -157,15 +172,15 @@ namespace Com.LanIM.UI
                 #region left border
                 if (vPoint.Y <= posInterval)
                 {
-                    m.Result = (IntPtr)HTTOPLEFT;
+                    m.Result = (IntPtr)WindowsConstants.HTTOPLEFT;
                 }
                 else if (vPoint.Y >= ClientSize.Height - posInterval)
                 {
-                    m.Result = (IntPtr)HTBOTTOMLEFT;
+                    m.Result = (IntPtr)WindowsConstants.HTBOTTOMLEFT;
                 }
                 else
                 {
-                    m.Result = (IntPtr)HTLEFT;
+                    m.Result = (IntPtr)WindowsConstants.HTLEFT;
                 }
                 #endregion
             }
@@ -175,34 +190,34 @@ namespace Com.LanIM.UI
 
                 if (vPoint.Y <= posInterval)
                 {
-                    m.Result = (IntPtr)HTTOPRIGHT;
+                    m.Result = (IntPtr)WindowsConstants.HTTOPRIGHT;
                 }
                 else if (vPoint.Y >= ClientSize.Height - posInterval)
                 {
-                    m.Result = (IntPtr)HTBOTTOMRIGHT;
+                    m.Result = (IntPtr)WindowsConstants.HTBOTTOMRIGHT;
                 }
                 else
                 {
-                    m.Result = (IntPtr)HTRIGHT;
+                    m.Result = (IntPtr)WindowsConstants.HTRIGHT;
                 }
 
                 #endregion
             }
             else if (vPoint.Y <= posInterval)
             {
-                m.Result = (IntPtr)HTTOP;
+                m.Result = (IntPtr)WindowsConstants.HTTOP;
             }
             else if (vPoint.Y >= ClientSize.Height - posInterval)
             {
-                m.Result = (IntPtr)HTBOTTOM;
+                m.Result = (IntPtr)WindowsConstants.HTBOTTOM;
             }
             else
             {
-                if (this.WindowState != FormWindowState.Maximized &&
-                    !this._formButtonsBounds.Contains(vPoint))
+                //if (this.WindowState != FormWindowState.Maximized &&
+                if(!this._formButtonsBounds.Contains(vPoint))
                 {
                     //只要不是右上角按钮&&最大化都可以拖动
-                    m.Result = (IntPtr)HTCAPTION;
+                    m.Result = (IntPtr)WindowsConstants.HTCAPTION;
 
                     //由于拖动时不可出发mousemove事件，所以要重绘按钮
                     this.Invalidate(this._formButtonsBounds);
@@ -219,7 +234,8 @@ namespace Com.LanIM.UI
         protected override void OnLocationChanged(EventArgs e)
         {
             base.OnLocationChanged(e);
-            
+
+            //System.Diagnostics.Trace.WriteLine(this.Location);
                 //this.Invalidate(this._formButtonsBounds);
         }
 
@@ -268,6 +284,18 @@ namespace Com.LanIM.UI
                     }
                 }
             }
+        }
+
+        protected override void OnActivated(EventArgs e)
+        {
+            base.OnActivated(e);
+            this._isActived = true;
+        }
+
+        protected override void OnDeactivate(EventArgs e)
+        {
+            base.OnDeactivate(e);
+            this._isActived = false;
         }
     }
 }

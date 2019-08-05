@@ -15,6 +15,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LanIM", "LanIM\LanIM.csproj
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LanIMTest", "LanIMTest\LanIMTest.csproj", "{B3BF9BBF-7A36-4CD0-BFC1-752EE419EF69}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LanIM.Server", "LanIM.Server\LanIM.Server.csproj", "{D1A8E429-0837-4CB6-B28A-30AB0CDC102F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -93,6 +95,18 @@ Global
 		{B3BF9BBF-7A36-4CD0-BFC1-752EE419EF69}.Release|x64.Build.0 = Release|Any CPU
 		{B3BF9BBF-7A36-4CD0-BFC1-752EE419EF69}.Release|x86.ActiveCfg = Release|Any CPU
 		{B3BF9BBF-7A36-4CD0-BFC1-752EE419EF69}.Release|x86.Build.0 = Release|Any CPU
+		{D1A8E429-0837-4CB6-B28A-30AB0CDC102F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D1A8E429-0837-4CB6-B28A-30AB0CDC102F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D1A8E429-0837-4CB6-B28A-30AB0CDC102F}.Debug|x64.ActiveCfg = Debug|x64
+		{D1A8E429-0837-4CB6-B28A-30AB0CDC102F}.Debug|x64.Build.0 = Debug|x64
+		{D1A8E429-0837-4CB6-B28A-30AB0CDC102F}.Debug|x86.ActiveCfg = Debug|x86
+		{D1A8E429-0837-4CB6-B28A-30AB0CDC102F}.Debug|x86.Build.0 = Debug|x86
+		{D1A8E429-0837-4CB6-B28A-30AB0CDC102F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D1A8E429-0837-4CB6-B28A-30AB0CDC102F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D1A8E429-0837-4CB6-B28A-30AB0CDC102F}.Release|x64.ActiveCfg = Release|Any CPU
+		{D1A8E429-0837-4CB6-B28A-30AB0CDC102F}.Release|x64.Build.0 = Release|Any CPU
+		{D1A8E429-0837-4CB6-B28A-30AB0CDC102F}.Release|x86.ActiveCfg = Release|Any CPU
+		{D1A8E429-0837-4CB6-B28A-30AB0CDC102F}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

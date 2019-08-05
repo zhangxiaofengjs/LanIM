@@ -65,12 +65,19 @@ namespace Com.LanIM.UI
             }
         }
 
+        public void Insert(int pos, ScrollableListItem item)
+        {
+            List<ScrollableListItem> col = new List<ScrollableListItem>();
+            col.Add(item);
+            InsertRange(pos, col);
+        }
+
         public void InsertRange(int pos, IEnumerable<ScrollableListItem> collection)
         {
             this._list.InsertRange(pos, collection);
             if (this._owner != null)
             {
-                this._owner.MeasureItemOnAdd(collection);
+                this._owner.MeasureItems();//插入时要重新计算各个项目的位置，当然可以从pos往下算，方便起见。。。以后再说
                 this._owner.Invalidate();
             }
         }

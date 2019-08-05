@@ -8,10 +8,11 @@
     <OutputType>WinExe</OutputType>
     <RootNamespace>Com.LanIM</RootNamespace>
     <AssemblyName>lanim</AssemblyName>
-    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Deterministic>true</Deterministic>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
     <DebugSymbols>true</DebugSymbols>
@@ -73,6 +74,9 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <Prefer32Bit>true</Prefer32Bit>
   </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>lanim.ico</ApplicationIcon>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -87,6 +91,16 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Components\MessageListBoxSelectionInfo.cs" />
+    <Compile Include="Components\NCIContextMenuStrip.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Components\SystemProfilePhotoControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Components\SystemProfilePhotoControl.Designer.cs">
+      <DependentUpon>SystemProfilePhotoControl.cs</DependentUpon>
+    </Compile>
     <Compile Include="EventArgs.cs" />
     <Compile Include="EventHandlers.cs" />
     <Compile Include="FormConfig.cs">
@@ -107,14 +121,19 @@
     <Compile Include="FormLogin.Designer.cs">
       <DependentUpon>FormLogin.cs</DependentUpon>
     </Compile>
+    <Compile Include="Components\UserProfileControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Components\UserProfileControl.Designer.cs">
+      <DependentUpon>UserProfileControl.cs</DependentUpon>
+    </Compile>
+    <Compile Include="LanGroup.cs" />
     <Compile Include="LanUser.cs" />
-    <Compile Include="LanUserState.cs" />
-    <Compile Include="LanUserStatus.cs" />
+    <Compile Include="UpdateState.cs" />
     <Compile Include="Components\MessageListBox.cs">
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="Components\MessageListItem.cs" />
-    <Compile Include="ProfilePhotoPool.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Components\UserChatControl.cs">
@@ -127,14 +146,22 @@
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="Components\UserListItem.cs" />
+    <EmbeddedResource Include="Components\SystemProfilePhotoControl.resx">
+      <DependentUpon>SystemProfilePhotoControl.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="FormConfig.resx">
       <DependentUpon>FormConfig.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="FormLanIM.resx">
       <DependentUpon>FormLanIM.cs</DependentUpon>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="FormLogin.resx">
       <DependentUpon>FormLogin.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Components\UserProfileControl.resx">
+      <DependentUpon>UserProfileControl.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
@@ -199,7 +226,20 @@
     <None Include="Resources\picture_focus.png" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\file.png" />
+    <Content Include="lanim.ico" />
+    <None Include="Resources\refresh.png" />
+    <None Include="Resources\wifi.png" />
+    <None Include="Resources\pp9.jpg" />
+    <None Include="Resources\pp8.jpg" />
+    <None Include="Resources\pp7.jpg" />
+    <None Include="Resources\pp6.jpg" />
+    <None Include="Resources\pp5.jpg" />
+    <None Include="Resources\pp4.jpg" />
+    <None Include="Resources\pp3.jpg" />
+    <None Include="Resources\pp2.jpg" />
+    <None Include="Resources\pp1.jpg" />
+    <None Include="Resources\tray.ico" />
+    <None Include="Resources\tray_trans.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

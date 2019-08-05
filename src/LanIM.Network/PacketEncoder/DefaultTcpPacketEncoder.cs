@@ -11,7 +11,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Com.LanIM.Network.PacketsEncoder
+namespace Com.LanIM.Network.PacketEncoder
 {
     public class DefaultTcpPacketEncoder : IPacketEncoder
     {
@@ -22,7 +22,7 @@ namespace Com.LanIM.Network.PacketsEncoder
             this._packet = packet;
         }
 
-        public byte[] Encode()
+        public EncodeResult Encode(object args)
         {
             using (MemoryStream ms = new MemoryStream(8042))
             {
@@ -38,7 +38,7 @@ namespace Com.LanIM.Network.PacketsEncoder
                     Encode(wtr, _packet.Extend as TcpPacketRequestFileTransportExtend);
                 }
 
-                return ms.ToArray();
+                return new EncodeResult(ms.ToArray());
             }
         }
 

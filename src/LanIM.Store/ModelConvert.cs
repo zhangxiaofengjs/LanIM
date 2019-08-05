@@ -21,7 +21,10 @@ namespace Com.LanIM.Store
         public List<T> Convert(DataTable dt, IInstanceCreater<T> creater, params ColumnMapping[] mappings)
         {
             List<T> list = new List<T>();
-
+            if(dt == null)
+            {
+                return list;
+            }
             foreach (DataRow row in dt.Rows)
             {
                 T t = creater.CreateInstance(row);
@@ -32,7 +35,12 @@ namespace Com.LanIM.Store
                     PropertyInfo pi = type.GetProperty(mapping.Property);
                     if(pi != null)
                     {
-                        pi.SetValue(t, row[mapping.Column]);
+                        object obj = row[mapping.Column];
+                        if (obj is DBNull)
+                        {
+                            obj = null;
+                        }
+                        pi.SetValue(t, obj);
                     }
                 }
 
