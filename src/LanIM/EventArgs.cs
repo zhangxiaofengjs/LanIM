@@ -1,4 +1,5 @@
-﻿using Com.LanIM.Common.Network;
+﻿using Com.LanIM.Common;
+using Com.LanIM.Common.Network;
 using Com.LanIM.Network;
 using Com.LanIM.Network.Packets;
 using Com.LanIM.Store.Models;
@@ -102,19 +103,16 @@ namespace Com.LanIM
 
     class ImageReceivedEventArgs : LanIMUserEventArgs
     {
-        private readonly Image _image;
-
         public long ID { get; }
+        public string FileName { get; }
 
-        public Image Image
-        {
-            get { return _image; }
-        }
+        public Image Image { get; }
 
-        public ImageReceivedEventArgs(LanUser user, long id, Image image)
+        public ImageReceivedEventArgs(LanUser user, long id, Image image, string fileName)
             : base(user)
         {
-            _image = image;
+            Image = image;
+            this.FileName = fileName;
         }
     }
 

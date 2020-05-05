@@ -59,7 +59,7 @@ namespace Com.LanIM
         {
             _user = new LanUser(context);
 
-            if (LanConfig.Instance.HideStatus)
+            if (LanClientConfig.Instance.HideStatus)
             {
                 _user.Status = UserStatus.Offline;
             }
@@ -67,10 +67,10 @@ namespace Com.LanIM
             {
                 _user.Status = UserStatus.Online;
             }
-            _user.MAC = LanConfig.Instance.MAC;
-            _user.IP = NCIInfo.GetIPAddress(LanConfig.Instance.MAC);
-            _user.BroadcastAddress = LanConfig.Instance.BroadcastAddress;
-            _user.NickName = LanConfig.Instance.NickName;
+            _user.MAC = LanClientConfig.Instance.MAC;
+            _user.Address = NCIInfo.GetIPAddress(LanClientConfig.Instance.MAC);
+            _user.BroadcastAddress = LanClientConfig.Instance.BroadcastAddress;
+            _user.NickName = LanClientConfig.Instance.NickName;
 
             //events
             _user.UserEntry += _user_UserEntry;
@@ -135,7 +135,7 @@ namespace Com.LanIM
 
                 foreach (LanUser user in _user.Contacters)
                 {
-                    if (user.ID == _user.ID)
+                    if (user.ID == _user.ID && !LanClientConfig.Instance.SelfVisible)
                     {
                         //忽视自己
                         continue;
@@ -147,6 +147,8 @@ namespace Com.LanIM
                 }
                 userListBox.Items.Clear();
                 userListBox.Items.AddRange(ulItems);
+
+                UpdateTaskBarIcon();
             }, null);
         }
 
@@ -192,7 +194,8 @@ namespace Com.LanIM
         {
             TransportFile file = args.File;
             //保存到默认接收文件夹
-            file.SavePath = LanConfig.Instance.GetReceivedFilePath(file.File.Name);
+            string fileName = LanEnv.GetNotExistFileName(LanEnv.ReceivedFilePath, file.File.Name);
+            file.SavePath = LanEnv.GetReceivedFilePath(fileName);
 
             this.userListBox.AddFileReceivingMessage(args.User, file);
 
@@ -235,7 +238,7 @@ namespace Com.LanIM
         private void UpdateContacter(UserStateChangeEventArgs args)
         {
             LanUser user = args.User;
-            if (user.ID == _user.ID)
+            if (user.ID == _user.ID && !LanClientConfig.Instance.SelfVisible)
             {
                 //自己就忽略掉，本身也不显示在list里面
                 return;
@@ -245,7 +248,7 @@ namespace Com.LanIM
 
         private void _user_ImageReceived(object sender, ImageReceivedEventArgs args)
         {
-            this.userListBox.AddReceivedImageMessage(args.User, args.ID, args.Image);
+            this.userListBox.AddReceivedImageMessage(args.User, args.ID, args.Image, args.FileName);
             UpdateUnreadMessageUI();
         }
 
@@ -296,23 +299,25 @@ namespace Com.LanIM
             //更新头像等一系列
             pictureBoxFace.Image = ProfilePhotoPool.GetPhoto(_user.ID);
             labelName.Text = _user.NickName;
+
+            UpdateTaskBarIcon();
         }
 
         private void toolStripMenuItemStatus_Click(object sender, EventArgs e)
         {
             if (sender == toolStripMenuItemStatusBusy)
             {
-                LanConfig.Instance.HideStatus = false;
+                LanClientConfig.Instance.HideStatus = false;
                 _user.Status = UserStatus.Busy;
             }
             else if (sender == toolStripMenuItemStatusOnline)
             {
-                LanConfig.Instance.HideStatus = false;
+                LanClientConfig.Instance.HideStatus = false;
                 _user.Status = UserStatus.Online;
             }
             else if (sender == this.toolStripMenuItemStatusHide)
             {
-                LanConfig.Instance.HideStatus = true;
+                LanClientConfig.Instance.HideStatus = true;
                 _user.Status = UserStatus.Offline;
             }
             else
@@ -320,7 +325,7 @@ namespace Com.LanIM
                 return;
             }
 
-            _user.UpdateState(UpdateState.Status);
+            _user.UpdateMyStateByBroadcast(UpdateState.Status);
 
             UpdateUserStatus();
         }
@@ -329,24 +334,23 @@ namespace Com.LanIM
         {
             if (_user.Status ==  UserStatus.Busy)
             {
-                this.labelStatus.Text = "忙碌中...";
+                this.labelStatus.Image = Properties.Resources.leaf_red;
             }
             else if(_user.Status ==  UserStatus.Online)
             {
-                this.labelStatus.Text = "在线中...";
+                this.labelStatus.Image = Properties.Resources.leaf_green;
             }
             else
             {
-                LanConfig.Instance.HideStatus = true;
+                LanClientConfig.Instance.HideStatus = true;
                 _user.Status = UserStatus.Offline;
-                this.labelStatus.Text = "隐身中...";
+                this.labelStatus.Image = Properties.Resources.leaf_gray;
             }
            
-            this.pictureBoxFace.UserStatus = _user.Status;
             this.pictureBoxFace.Refresh();
         }
 
-        private void labelStatus_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        private void labelStatus_Clicked(object sender, EventArgs e)
         {
             contextMenuStripStatus.Show(this.labelStatus, new Point(0, this.labelStatus.Height));
         }
@@ -368,7 +372,7 @@ namespace Com.LanIM
                 case UserStatus.Online: toolStripMenuItemStatusOnline.Checked = true; break;
                 case UserStatus.Busy: toolStripMenuItemStatusBusy.Checked = true; break;
                 default:
-                    if (LanConfig.Instance.HideStatus)
+                    if (LanClientConfig.Instance.HideStatus)
                     {
                         toolStripMenuItemStatusHide.Checked = true;
                     }
@@ -400,7 +404,7 @@ namespace Com.LanIM
 
         private void timer_Tick(object sender, EventArgs e)
         {
-            this.notifyIcon.Icon = _trayBlinkIconFlg ? Properties.Resources.tray : Properties.Resources.tray_trans;
+            this.notifyIcon.Icon = _trayBlinkIconFlg ? this.Icon : Properties.Resources.tray_trans;
             _trayBlinkIconFlg = !_trayBlinkIconFlg;
         }
 
@@ -415,15 +419,17 @@ namespace Com.LanIM
             if (count != 0 || !this.IsActived)
             {
                 timer.Start();
+
+                WndsApi.FlashWindow(this.Handle, false);
             }
             else
             {
                 timer.Stop();
-                this.notifyIcon.Icon = Properties.Resources.tray;
+                this.notifyIcon.Icon = this.Icon;
             }
 
             //任务栏 暂时默默的无动作，以后考虑更换图标
-            this.Icon = LanImage.CreateNumberIcon(Properties.Resources.tray, count);
+            this.Icon = LanImage.CreateNumberIcon(this.Icon, count, this.Font);
         }
 
         private void userListBox_ItemClicked(object sender, ItemClickedEventArgs args)
@@ -439,7 +445,14 @@ namespace Com.LanIM
         {
             //窗口激活后就不进行闪烁了
             timer.Stop();
-            this.notifyIcon.Icon = Properties.Resources.tray;
+            this.notifyIcon.Icon = this.Icon;
+        }
+
+        private void UpdateTaskBarIcon()
+        {
+            Icon icon = LanImage.ImageToIcon(ProfilePhotoPool.GetPhoto(_user.ID));
+            this.Icon = icon;
+            this.notifyIcon.Icon = icon;
         }
 
         private void button1_Click(object sender, EventArgs e)

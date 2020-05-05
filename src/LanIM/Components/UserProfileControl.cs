@@ -23,7 +23,7 @@ namespace Com.LanIM.Components
                 _user = value;
                 this.labelNickName.Text = _user.NickName;
                 this.labelMAC.Text = _user.MAC;
-                this.textBoxIP.Text = _user.IP.ToString();
+                this.textBoxIP.Text = _user.Address.ToString();
                 this.textBoxMemo.Text = _user.Memo;
             }
         }

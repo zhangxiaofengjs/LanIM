@@ -22,7 +22,7 @@ namespace Com.LanIM.Network.PacketEncoder
             this._packet = packet;
         }
 
-        public EncodeResult Encode(object args)
+        public EncodeResult Encode()
         {
             using (MemoryStream ms = new MemoryStream(8042))
             {

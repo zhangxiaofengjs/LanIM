@@ -16,8 +16,19 @@ namespace Com.LanIM.Store.Models
     {
         //原图路径
         public string OriginPath { get; set; }
-
-        public Image Image{ get; set; }
+        public string FileName { get; set; }
+        public Image Image { get; set; }
+        public string Path
+        {
+            get
+            {
+                if(!string.IsNullOrEmpty(this.OriginPath))
+                {
+                    return this.OriginPath;
+                }
+                return LanEnv.GetPictureFilePath(this.FileName);
+            }
+        }
 
         public ImageMessage()
            : base(MessageType.Image)
@@ -32,11 +43,6 @@ namespace Com.LanIM.Store.Models
 
         public void Prepare()
         {
-            //保存文件
-            string fileName = Path.GetRandomFileName() + ".png";
-            string filePath = LanConfig.Instance.GetPictureFilePath(fileName);
-            Image.Save(filePath, ImageFormat.Png);
-
             //<r>
             //  <f></f>
             //  <o></o>
@@ -47,7 +53,7 @@ namespace Com.LanIM.Store.Models
             doc.AppendChild(xe);
 
             XmlNode fn = doc.CreateElement("f");
-            fn.InnerText = fileName;
+            fn.InnerText = FileName;
             xe.AppendChild(fn);
 
             XmlNode on = doc.CreateElement("o");
@@ -69,10 +75,10 @@ namespace Com.LanIM.Store.Models
                 xmlDoc.Load(reader);
 
                 XmlNode node = xmlDoc.SelectSingleNode("r/f");
-                if(node != null)
+                if (node != null)
                 {
-                    string fileName = node.InnerText;
-                    string filePath = LanConfig.Instance.GetPictureFilePath(fileName);
+                    this.FileName = node.InnerText;
+                    string filePath = LanEnv.GetPictureFilePath(FileName);
                     if (File.Exists(filePath))
                     {
                         this.Image = Image.FromFile(filePath);

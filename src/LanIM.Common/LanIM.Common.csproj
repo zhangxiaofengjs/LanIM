@@ -83,9 +83,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="LanEnv.cs" />
+    <Compile Include="LanServerConfig.cs" />
     <Compile Include="Network\NCIInfo.cs" />
     <Compile Include="LanColor.cs" />
-    <Compile Include="LanConfig.cs" />
+    <Compile Include="LanClientConfig.cs" />
     <Compile Include="LanImage.cs" />
     <Compile Include="Logger\ILogger.cs" />
     <Compile Include="Logger\LoggerFactory.cs" />
@@ -102,7 +104,7 @@
     <Compile Include="Security\SecurityKeys.cs" />
     <Compile Include="Security\RSA.cs" />
     <Compile Include="Security\SecurityFactory.cs" />
-    <Compile Include="UserStatus.cs" />
+    <Compile Include="WndsApi.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

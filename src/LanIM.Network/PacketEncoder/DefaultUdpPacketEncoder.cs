@@ -24,7 +24,7 @@ namespace Com.LanIM.Network.PacketEncoder
             this._packet = packet;
         }
 
-        public EncodeResult Encode(object args)
+        public EncodeResult Encode()
         {
             using (MemoryStream ms = new MemoryStream(8042))
             {
@@ -38,7 +38,7 @@ namespace Com.LanIM.Network.PacketEncoder
                     long parentId = p.ID;
 
                     int pos = 0;
-                    int len = (int)args;
+                    int len = p.MaxFragmentLength;
                     
                     while (pos < p.FragmentBuff.Length)
                     {
@@ -101,6 +101,12 @@ namespace Com.LanIM.Network.PacketEncoder
                         case UdpPacket.CMD_STATE:
                             EncodeEntryExtend(wtr, _packet);
                             break;
+                        case UdpPacket.CMD_RETRANSMIT:
+                            EncodeRetransmitExtend(wtr, _packet.Extend);
+                            break;
+                        case UdpPacket.CMD_USER_LIST:
+                            EncodeUserListExtend(wtr, _packet.Extend);
+                            break;
                         default:
                             break;
                     }
@@ -116,31 +122,62 @@ namespace Com.LanIM.Network.PacketEncoder
             }
         }
 
+        private void EncodeUserListExtend(BinaryWriter wtr, object extendObj)
+        {
+            UdpPacketUserListExtend extend = extendObj as UdpPacketUserListExtend;
+            wtr.Write(extend.Users.Count);
+
+            foreach (User u in extend.Users)
+            {
+                wtr.Write(u.Address.ToString());
+                wtr.Write(u.Port);
+                wtr.Write(u.MAC);
+                wtr.Write((int)u.Status);
+                wtr.Write(u.SecurityKeys.Public.Length);
+                wtr.Write(u.SecurityKeys.Public);
+            }
+        }
+
+        private static void EncodeRetransmitExtend(BinaryWriter wtr, object extendObj)
+        {
+            UdpPacketRetransExtend extend = extendObj as UdpPacketRetransExtend;
+            wtr.Write(extend.PacketID);
+
+            wtr.Write(extend.Address.ToString());
+            wtr.Write(extend.Port);
+
+            wtr.Write(extend.Length);
+            wtr.Write(extend.PacketBuf);
+        }
+
         private static void EncodeEntryExtend(BinaryWriter wtr, UdpPacket packet)
         {
-            UdpPacketStateExtend extend = packet.Extend as UdpPacketStateExtend;
+            UdpPacketUserStateExtend extend = packet.Extend as UdpPacketUserStateExtend;
             if (extend == null)
             {
                 throw new Exception("[EncodeEntryExtend]未想定附加包");
             }
+            User user = extend.User;
 
-            if ((packet.Command & UdpPacket.CMD_OPTION_STATE_PUBKEY) != 0)
+            wtr.Write((int)extend.UpdateState);
+
+            if ((extend.UpdateState & UpdateState.PublicKey) != 0)
             {
-                byte[] keyBuf = extend.PublicKey;
+                byte[] keyBuf = user.SecurityKeys.Public;
                 wtr.Write(keyBuf.Length);
                 wtr.Write(keyBuf);
             }
-            if ((packet.Command & UdpPacket.CMD_OPTION_STATE_NICKNAME) != 0)
+            if ((extend.UpdateState & UpdateState.NickName) != 0)
             {
-                wtr.Write(extend.NickName);
+                wtr.Write(user.NickName);
             }
-            if ((packet.Command & UdpPacket.CMD_OPTION_STATE_STATUS) != 0)
+            if ((extend.UpdateState & UpdateState.Status) != 0)
             {
-                wtr.Write((int)extend.Status);
+                wtr.Write((int)user.Status);
             }
-            if ((packet.Command & UdpPacket.CMD_OPTION_STATE_PROFILE_PHOTO) != 0)
+            if ((extend.UpdateState & UpdateState.Photo) != 0)
             {
-                if (extend.ProfilePhoto == null)
+                if (user.ProfilePhoto == null)
                 {
                     wtr.Write(0);
                 }
@@ -148,12 +185,20 @@ namespace Com.LanIM.Network.PacketEncoder
                 {
                     using (MemoryStream ms = new MemoryStream())
                     {
-                        extend.ProfilePhoto.Save(ms, ImageFormat.Png);
+                        user.ProfilePhoto.Save(ms, ImageFormat.Png);
                         wtr.Write((int)ms.Length);
                         byte[] buf = ms.ToArray();
                         wtr.Write(buf);
                     }
                 }
+            }
+            if ((extend.UpdateState & UpdateState.IP) != 0)
+            {
+                wtr.Write(user.Address.ToString());
+            }
+            if ((extend.UpdateState & UpdateState.Port) != 0)
+            {
+                wtr.Write(user.Port);
             }
         }
 
@@ -197,6 +242,7 @@ namespace Com.LanIM.Network.PacketEncoder
                 byte[] buf = ms.ToArray();
                 byte[] enBuf = SecurityFactory.Encrypt(buf, extend.EncryptKey);
 
+                wtr.Write(extend.FileName);
                 wtr.Write(enBuf.Length);
                 wtr.Write(enBuf);
             }

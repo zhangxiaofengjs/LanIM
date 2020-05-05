@@ -22,5 +22,10 @@ namespace Com.LanIM.UI
             _brushCache.Add(c, bb);
             return bb;
         }
+
+        public static Brush GetBrush(int a, int r, int g, int b)
+        {
+            return GetBrush(Color.FromArgb(a, r, g, b));
+        }
     }
 }

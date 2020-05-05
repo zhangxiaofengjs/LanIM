@@ -12,18 +12,35 @@ namespace Com.LanIM.Common
     {
         private const int THUMBNAIL_IMAGE_WIDTH = 100;
 
-        public static Icon CreateNumberIcon(Icon icon, int count)
+        public static Icon CreateNumberIcon(Icon icon, int number, Font f)
         {
-         //   if(count == 0)
+            //if (number == 0)
             {
                 return icon;
             }
 
             //Image image = Image.FromHbitmap(icon.ToBitmap().GetHbitmap());
+            //Size size = icon.Size;
+            //Rectangle rect = new Rectangle(0, 0, size.Width, size.Height);
             //using (Graphics g = Graphics.FromImage(image))
             //{
-
+            //    g.FillEllipse(Brushes.Red, new Rectangle(rect.Width / 2 - 2, rect.Height / 2 - 2, rect.Width / 2, rect.Height / 2));
+            //    //g.DrawString(number > 99 ? "..." : number.ToString(), f, Brushes.Red, rect.Width / 2 - 2, rect.Height / 2 - 2);
+            //    //    new Rectangle(rect.Width / 2 - 2, rect.Height / 2 - 2, rect.Width / 2, rect.Height / 2), new StringFormat()
+            //    //{
+            //    //    LineAlignment = StringAlignment.Center,
+            //    //    Alignment = StringAlignment.Center
+            //    //});
             //}
+
+            //return ImageToIcon(image);
+        }
+
+        public static Icon ImageToIcon(Image img)
+        {
+            Bitmap bitmap = new Bitmap(img);
+            System.IntPtr iconHandle = bitmap.GetHicon();
+            return Icon.FromHandle(iconHandle);
         }
 
         public static Image GetThumbnailImage(string path, int width = THUMBNAIL_IMAGE_WIDTH)

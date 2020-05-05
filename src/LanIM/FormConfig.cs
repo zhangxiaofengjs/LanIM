@@ -38,7 +38,7 @@ namespace Com.LanIM
 
                 NCIInfo nicInfo = NCIInfo.GetNICInfo(_user.ID);
                 textBoxNIC.Text = nicInfo == null ? "" : nicInfo.Name;
-                labelIP.Text = _user.IP.ToString();
+                labelIP.Text = _user.Address.ToString();
                 textBoxBroadcastAddress.Text = NCIInfo.ConvertToString(_user.BroadcastAddress);
             }
         }
@@ -64,7 +64,7 @@ namespace Com.LanIM
             ProfilePhotoPool.SetPhoto(User.ID, img);
 
             pictureBoxFace.Image = img;
-            User.UpdateState(UpdateState.Photo);
+            User.UpdateMyStateByBroadcast(UpdateState.Photo);
         }
 
         private void FormConfig_FormClosed(object sender, FormClosedEventArgs e)
@@ -72,17 +72,17 @@ namespace Com.LanIM
             if (User.NickName != textBoxUserName.Text)
             {
                 User.NickName = textBoxUserName.Text;
-                User.UpdateState(UpdateState.NickName);
+                User.UpdateMyStateByBroadcast(UpdateState.NickName);
 
-                LanConfig.Instance.NickName = User.NickName;
+                LanClientConfig.Instance.NickName = User.NickName;
             }
 
-            string str = NCIInfo.ConvertToString(LanConfig.Instance.BroadcastAddress);
+            string str = NCIInfo.ConvertToString(LanClientConfig.Instance.BroadcastAddress);
             if (str != textBoxBroadcastAddress.Text)
             {
-                LanConfig.Instance.BroadcastAddress = NCIInfo.ConvertToIPAddIfNotExist(textBoxBroadcastAddress.Text,
-                    NCIInfo.GetBroadcastIP(LanConfig.Instance.MAC));
-                User.BroadcastAddress = LanConfig.Instance.BroadcastAddress;
+                LanClientConfig.Instance.BroadcastAddress = NCIInfo.ConvertToIPAddIfNotExist(textBoxBroadcastAddress.Text,
+                    NCIInfo.GetBroadcastIP(LanClientConfig.Instance.MAC));
+                User.BroadcastAddress = LanClientConfig.Instance.BroadcastAddress;
             }
         }
 
@@ -100,7 +100,7 @@ namespace Com.LanIM
         {
             textBoxNIC.Text = args.NCIInfo.Name;
             labelIP.Text = args.NCIInfo.Address.ToString();
-            LanConfig.Instance.MAC = args.NCIInfo.MAC;
+            LanClientConfig.Instance.MAC = args.NCIInfo.MAC;
         }
 
         private void textBoxNIC_Click(object sender, EventArgs e)

@@ -11,6 +11,6 @@ namespace Com.LanIM.Network.PacketEncoder
 {
     public interface IPacketEncoder
     {
-        EncodeResult Encode(object args);
+        EncodeResult Encode();
     }
 }

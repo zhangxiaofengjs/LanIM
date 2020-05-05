@@ -101,7 +101,6 @@
             // 
             // pictureBoxFace
             // 
-            this.pictureBoxFace.DrawUserStatus = false;
             this.pictureBoxFace.Image = global::Com.LanIM.Properties.Resources.logo;
             this.pictureBoxFace.Location = new System.Drawing.Point(208, 38);
             this.pictureBoxFace.Margin = new System.Windows.Forms.Padding(4);
@@ -110,7 +109,6 @@
             this.pictureBoxFace.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.pictureBoxFace.TabIndex = 10;
             this.pictureBoxFace.TabStop = false;
-            this.pictureBoxFace.UserStatus = Com.LanIM.Common.UserStatus.Online;
             this.pictureBoxFace.Click += new System.EventHandler(this.pictureBoxFace_Click);
             // 
             // labelSysPhoto

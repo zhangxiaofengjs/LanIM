@@ -86,14 +86,24 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="FormTest.cs">
+    <Compile Include="FormNatUdp.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="FormNatUdp.Designer.cs">
+      <DependentUpon>FormNatUdp.cs</DependentUpon>
+    </Compile>
+    <Compile Include="TextBoxArea.cs" />
+    <Compile Include="Caret.cs" />
+    <Compile Include="FormTest.cs" />
     <Compile Include="FormTest.Designer.cs">
       <DependentUpon>FormTest.cs</DependentUpon>
     </Compile>
+    <Compile Include="Ime.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <EmbeddedResource Include="FormNatUdp.resx">
+      <DependentUpon>FormNatUdp.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="FormTest.resx">
       <DependentUpon>FormTest.cs</DependentUpon>
     </EmbeddedResource>
@@ -136,10 +146,6 @@
     <ProjectReference Include="..\LanIM.UI\LanIM.UI.csproj">
       <Project>{3a43601c-347e-4cd5-8c96-7c417a206ceb}</Project>
       <Name>LanIM.UI</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\LanIM\LanIM.csproj">
-      <Project>{95014d1e-72f3-4e66-aabc-f08bfa3ce9ce}</Project>
-      <Name>LanIM</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

@@ -103,7 +103,7 @@ namespace Com.LanIM.Network
                     };
 
                     IPacketEncoder encoder = PacketEncoderFactory.CreateEncoder(packet);
-                    result = encoder.Encode(null);
+                    result = encoder.Encode();
                 }
                 catch (Exception e)
                 {

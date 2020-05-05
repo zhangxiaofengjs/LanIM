@@ -19,6 +19,8 @@ namespace Com.LanIM.Components
     {
         private static readonly int ICON_WIDTH = 36;
         private static readonly int MARGIN = 5;
+        private static readonly Font MSG_COUNT_FONT = new Font("arial", 8, FontStyle.Bold);
+        private static readonly int MSG_COUNT_DIAM = 16;
 
         public LanUser OwnerUser { get; set; }
 
@@ -100,7 +102,9 @@ namespace Com.LanIM.Components
             {
                 UserListItem item = this[user.ID];
 
-                if ((updateState & UpdateState.NickName) != 0)
+                if ((updateState & UpdateState.NickName) != 0 ||
+                    (updateState & UpdateState.IP) != 0 ||
+                    (updateState & UpdateState.Port) != 0)
                 {
                     item.Update();
                 }
@@ -148,23 +152,16 @@ namespace Com.LanIM.Components
             g.DrawImage(ProfilePhotoPool.GetPhoto(userListItem.User.ID), x, y, ICON_WIDTH, ICON_WIDTH);
 
             //在线状态
-            Brush brush = new SolidBrush(Color.Gray);
-
-            if (userListItem.User.Status == UserStatus.Online)
+            Brush brush;
+            switch(userListItem.User.Status)
             {
-                brush = new SolidBrush(Color.Green);
-            }
-            else if (userListItem.User.Status == UserStatus.Offline)
-            {
-                brush = new SolidBrush(Color.Gray);
-            }
-            else if (userListItem.User.Status == UserStatus.Busy)
-            {
-                brush = new SolidBrush(Color.Crimson);
+                case UserStatus.Online: brush = BrushPool.GetBrush(Color.Green);break;
+                case UserStatus.Busy: brush = BrushPool.GetBrush(Color.Crimson); break;
+                default: brush = BrushPool.GetBrush(Color.Gray); break;
             }
             g.FillEllipse(brush, x + ICON_WIDTH - 8, y + ICON_WIDTH - 8, 10, 10);
 
-            g.DrawEllipse(new Pen(Color.White, 1.0f), x+ICON_WIDTH-8, y + ICON_WIDTH - 8, 11, 11);
+            g.DrawEllipse(Pens.White, x+ICON_WIDTH-8, y + ICON_WIDTH - 8, 11, 11);
 
             //昵称
             x += ICON_WIDTH + MARGIN;
@@ -175,17 +172,27 @@ namespace Com.LanIM.Components
 
             //IP
             string ip = "";
-            if ( userListItem.User.IP != null )
+            if ( userListItem.User.Address != null )
             {
-                ip = userListItem.User.IP.ToString();
+                ip = userListItem.User.Address.ToString();
             }
             TextRenderer.DrawText(g, ip,
                 args.Font, commandRect, Color.FromArgb(150, 150, 150), TextFormatFlags.Right|TextFormatFlags.Top);
 
+            //字体位置
             if (userListItem.UnreadMessageCount != 0)
             {
-                TextRenderer.DrawText(g, userListItem.UnreadMessageCount.ToString(),
-                   args.Font, rect, Color.Red, TextFormatFlags.Right | TextFormatFlags.Bottom);
+                Rectangle rectMsgCnt = new Rectangle(rect.Right - MSG_COUNT_DIAM - 10, rect.Bottom - MSG_COUNT_DIAM - 12, MSG_COUNT_DIAM, MSG_COUNT_DIAM);
+                g.DrawEllipse(Pens.DarkGray, rectMsgCnt);
+                g.FillEllipse(Brushes.DarkGray, rectMsgCnt);
+                int number = userListItem.UnreadMessageCount;
+                rectMsgCnt.X += number > 99 ? 1 : 0;//字体位置微调
+                rectMsgCnt.Y += number > 99 ? -2 : 1;
+                g.DrawString(number > 99 ? "..." : number.ToString(), MSG_COUNT_FONT, Brushes.White, rectMsgCnt, new StringFormat()
+                {
+                    LineAlignment = StringAlignment.Center,
+                    Alignment = StringAlignment.Center
+                });
             }
         }
 
@@ -245,13 +252,14 @@ namespace Com.LanIM.Components
             }
         }
 
-        public void AddReceivedImageMessage(LanUser from, long id, Image image)
+        public void AddReceivedImageMessage(LanUser from, long id, Image image, string fileName)
         {
             //保存记录
             Store.Models.ImageMessage m = new Store.Models.ImageMessage(image);
             m.FromUserId = from.ID;
             m.ToUserId = this.OwnerUser.ID;
             m.OriginPath = "";
+            m.FileName = Path.GetFileName(fileName);
             m.Flag = true; //默认成功，后面按照失败结果设定为false
 
             MessageListItem item = new MessageListItem();

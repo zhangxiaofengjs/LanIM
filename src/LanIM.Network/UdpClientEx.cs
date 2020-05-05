@@ -33,12 +33,12 @@ namespace Com.LanIM.Network
         public const int UDP_MAX_BUF_SIZE = 1400;//跨网的时候根据测试设定大于1472字节不能正常传输TODO分片发送
 
         private UdpClient _client;
-        private ClientState _state;
-        public int SendResponseCheckDelay { get; set; }
-        public int Port { get; set; }
+        private ClientState _state = ClientState.Waiting;
+        public int SendResponseCheckDelay { get; set; } = SEND_RESPONSE_CHECK_DELAY;
+        public int Port { get; set; } = DEFAULT_PORT;
         public IPAddress IP { get; set; }
 
-        public SecurityKeys SecurityKeys { get; set; }
+        public SecurityKeys SecurityKeys { get; set; } = new SecurityKeys();
 
         private TaskFactory _taskFactory = new TaskFactory();
         private BlockingCollection<UdpPacket> _receivedPackets = new BlockingCollection<UdpPacket>();
@@ -54,10 +54,7 @@ namespace Com.LanIM.Network
 
         public UdpClientEx(SynchronizationContext context)
         {
-            this.Port = DEFAULT_PORT;
-            this.SendResponseCheckDelay = SEND_RESPONSE_CHECK_DELAY;
             this._context = context;
-            this._state = ClientState.Waiting;
         }
 
         public void Close()
@@ -279,7 +276,7 @@ namespace Com.LanIM.Network
                 IPacketEncoder encoder = PacketEncoderFactory.CreateEncoder(packet);
                 LoggerFactory.Debug("get encoder:{0}", encoder.GetType().Name);
 
-                result = encoder.Encode(null);
+                result = encoder.Encode();
                 LoggerFactory.Debug("encode packet:{0}", result);
 
                 if (result.Length > UDP_MAX_BUF_SIZE)
@@ -288,11 +285,12 @@ namespace Com.LanIM.Network
                     MultiUdpPacket mpacket = new MultiUdpPacket(result.Fragments[0]);
                     mpacket.ID = packet.ID;
                     mpacket.ParentID = packet.ID;
+                    mpacket.MaxFragmentLength = UDP_MAX_BUF_SIZE - MultiUdpPacket.HEAD_SIZE;
 
                     encoder = PacketEncoderFactory.CreateEncoder(mpacket);
                     LoggerFactory.Debug("get encoder:{0}", encoder.GetType().Name);
 
-                    result = encoder.Encode(UDP_MAX_BUF_SIZE - MultiUdpPacket.HEAD_SIZE);
+                    result = encoder.Encode();
                     LoggerFactory.Debug("encode packet:{0}", result);
                 }
             }
@@ -352,7 +350,7 @@ namespace Com.LanIM.Network
                             OnError(Errors.Unknow, "未想定异常：AsyncSendHandler", null);
                         }
 
-                        WaitTimer.Start(this.SendResponseCheckDelay, SendResultCheckHandler, packet);
+                        WaitTimer.Once(this.SendResponseCheckDelay, SendResultCheckHandler, packet);
                     }
                     else
                     {

@@ -78,7 +78,7 @@ namespace Com.LanIM.Components
             ContacterMapper contacterMapper = new ContacterMapper();
             Contacter c = new Contacter();
             c.MAC = this.User.ID;
-            c.IP = this.User.IP == null ? "0.0.0.0" : this.User.IP.ToString();
+            c.IP = this.User.Address == null ? "0.0.0.0" : this.User.Address.ToString();
             c.NickName = this.User.NickName;
 
             contacterMapper.Add(c);

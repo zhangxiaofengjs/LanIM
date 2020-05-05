@@ -25,8 +25,8 @@ namespace Com.LanIM
             try
             {
 #endif
-                LanConfig.Instance.Load();
-                LanIMStore.Initialize();
+                LanClientConfig.Instance.Load();
+                LanIMStore.Initialize(LanClientConfig.Instance.DbPath);
 
                 FormLogin loginForm = new FormLogin();
                 DialogResult dr = loginForm.ShowDialog();
@@ -35,7 +35,7 @@ namespace Com.LanIM
                     FormLanIM form = new FormLanIM();
                     Application.Run(form);
 
-                    LanConfig.Instance.Save();
+                    LanClientConfig.Instance.Save();
                 }
 
                 LanIMStore.UnInitialize();

@@ -478,6 +478,11 @@ namespace Com.LanIM.UI
 
         internal void MeasureItemOnAdd(IEnumerable<ScrollableListItem> collection)
         {
+            if(this.Disposing || this.IsDisposed)
+            {
+                return;
+            }
+
             int totleItemHeight = 0;
             int height = this.TotleItemHeight;
             using (Graphics g = this.CreateGraphics())

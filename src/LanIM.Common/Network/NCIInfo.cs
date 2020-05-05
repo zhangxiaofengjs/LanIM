@@ -106,8 +106,11 @@ namespace Com.LanIM.Common.Network
                 return false;
             })))
             {
-                //默认加上当前
-                list.Add(ip);
+                if (ip != null)
+                {
+                    //默认加上当前
+                    list.Add(ip);
+                }
             }
 
             return list;

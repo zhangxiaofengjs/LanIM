@@ -79,6 +79,12 @@ namespace Com.LanIM.Network.PacketResolver
                         case UdpPacket.CMD_STATE:
                             packet.Extend = ResolveEntryExtend(rdr, packet.Command);
                             break;
+                        case UdpPacket.CMD_RETRANSMIT:
+                            packet.Extend = ResolveRetransmitExtend(rdr);
+                            break;
+                        case UdpPacket.CMD_USER_LIST:
+                            packet.Extend = ResolveUserListExtend(rdr);
+                            break;
                         default:
                             break;
                     }
@@ -88,24 +94,66 @@ namespace Com.LanIM.Network.PacketResolver
             }
         }
 
-        private static UdpPacketStateExtend ResolveEntryExtend(BinaryReader rdr, ulong command)
+        private object ResolveUserListExtend(BinaryReader rdr)
         {
-            UdpPacketStateExtend extend = new UdpPacketStateExtend();
+            UdpPacketUserListExtend extend = new UdpPacketUserListExtend();
 
-            if ((command & UdpPacket.CMD_OPTION_STATE_PUBKEY) != 0)
+            int count = rdr.ReadInt32();
+            for (int i = 0; i < count; i++)
+            {
+                User u = new User();
+                u.Address = IPAddress.Parse(rdr.ReadString());
+                u.Port = rdr.ReadInt32();
+                u.MAC = rdr.ReadString();
+                u.Status = (UserStatus)rdr.ReadInt32();
+
+                int bc = rdr.ReadInt32();
+                u.SecurityKeys.Public = rdr.ReadBytes(bc);
+
+                extend.AddUser(u);
+            }
+
+            return extend;
+        }
+
+        private static UdpPacketRetransExtend ResolveRetransmitExtend(BinaryReader rdr)
+        {
+            long pktId = rdr.ReadInt64();
+
+            string strIp = rdr.ReadString();
+            int port = rdr.ReadInt32();
+            int len = rdr.ReadInt32();
+            byte[] buf = rdr.ReadBytes(len);
+
+            UdpPacketRetransExtend extend = new UdpPacketRetransExtend(buf);
+            extend.PacketID = pktId;
+            extend.Address = IPAddress.Parse(strIp);
+            extend.Port = port;
+            return extend;
+        }
+
+        private static UdpPacketUserStateExtend ResolveEntryExtend(BinaryReader rdr, ulong command)
+        {
+            UdpPacketUserStateExtend extend = new UdpPacketUserStateExtend();
+            extend.UpdateState = (UpdateState)rdr.ReadInt32();
+
+            User user = new User();
+            extend.User = user;
+
+            if ((extend.UpdateState & UpdateState.PublicKey) != 0)
             {
                 int len = rdr.ReadInt32();
-                extend.PublicKey = rdr.ReadBytes(len);
+                user.SecurityKeys.Public = rdr.ReadBytes(len);
             }
-            if ((command & UdpPacket.CMD_OPTION_STATE_NICKNAME) != 0)
+            if ((extend.UpdateState & UpdateState.NickName) != 0)
             {
-                extend.NickName = rdr.ReadString();
+                user.NickName = rdr.ReadString();
             }
-            if ((command & UdpPacket.CMD_OPTION_STATE_STATUS) != 0)
+            if ((extend.UpdateState & UpdateState.Status) != 0)
             {
-                extend.Status = (UserStatus)rdr.ReadInt32();
+                user.Status = (UserStatus)rdr.ReadInt32();
             }
-            if ((command & UdpPacket.CMD_OPTION_STATE_PROFILE_PHOTO) != 0)
+            if ((extend.UpdateState & UpdateState.Photo) != 0)
             {
                 int len = rdr.ReadInt32();
                 if (len != 0)
@@ -113,11 +161,18 @@ namespace Com.LanIM.Network.PacketResolver
                     byte[] buf = rdr.ReadBytes(len);
                     using (MemoryStream ms = new MemoryStream(buf))
                     {
-                        extend.ProfilePhoto = Image.FromStream(ms);
+                        user.ProfilePhoto = Image.FromStream(ms);
                     }
                 }
             }
-
+            if ((extend.UpdateState & UpdateState.IP) != 0)
+            {
+                user.Address = IPAddress.Parse(rdr.ReadString());
+            }
+            if ((extend.UpdateState & UpdateState.Port) != 0)
+            {
+                user.Port = rdr.ReadInt32();
+            }
             return extend;
         }
 
@@ -146,6 +201,7 @@ namespace Com.LanIM.Network.PacketResolver
         private static UdpPacketImageExtend ResolveImageExtend(BinaryReader rdr, byte[] priKey)
         {
             UdpPacketImageExtend extend = new UdpPacketImageExtend();
+            string fileName = rdr.ReadString();
             int len = rdr.ReadInt32();
             byte[] buf = rdr.ReadBytes(len);
 
@@ -155,6 +211,7 @@ namespace Com.LanIM.Network.PacketResolver
             {
                 Image image = Image.FromStream(ms);
                 extend.Image = image;
+                extend.FileName = fileName;
             }
             return extend;
         }

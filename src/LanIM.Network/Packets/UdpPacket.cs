@@ -21,14 +21,12 @@ namespace Com.LanIM.Network.Packets
         public const ulong CMD_SEND_IMAGE = 0x00000005; //发送图像消息
         public const ulong CMD_SEND_FILE_REQUEST = 0x00000006; //发送文件传送要求消息
         public const ulong CMD_RESPONSE = 0x00000007; //收到各种消息回应
-
+        public const ulong CMD_RETRANSMIT = 0x00000008; //转送包
+        public const ulong CMD_HEART_BEAT = 0x00000009; //心跳
+        public const ulong CMD_USER_LIST = 0x0000000A; //用户一览
+        
         public const ulong CMD_OPTION_NEED_RESPONSE = 0x00000100; //是否需要回应消息
         public const ulong CMD_OPTION_SEND_FILE_IMAGE = 0x00000200; //是否发送的图像
-
-        public const ulong CMD_OPTION_STATE_PROFILE_PHOTO = 0x00000400; //用户头像
-        public const ulong CMD_OPTION_STATE_NICKNAME = 0x00000800; //用户昵称
-        public const ulong CMD_OPTION_STATE_STATUS = 0x000001000; //用户状态
-        public const ulong CMD_OPTION_STATE_PUBKEY = 0x000002000; //用户加密公钥
 
         public override byte Type
         {

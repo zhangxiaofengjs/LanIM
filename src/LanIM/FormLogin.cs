@@ -43,7 +43,7 @@ namespace Com.LanIM
             List<NCIInfo> nciInfos = NCIInfo.GetNICInfo( NCIType.Physical | NCIType.Wireless);
             NCIInfo nciInfo = nciInfos.Find(new Predicate<NCIInfo>((item) =>
             {
-                if (item.MAC == LanConfig.Instance.MAC)
+                if (item.MAC == LanClientConfig.Instance.MAC)
                 {
                     return true;
                 }
@@ -55,12 +55,12 @@ namespace Com.LanIM
                 if(nciInfos.Count >= 1)
                 {
                     nciInfo = nciInfos[0];
-                    LanConfig.Instance.MAC = nciInfo.MAC;
+                    LanClientConfig.Instance.MAC = nciInfo.MAC;
                 }
             }
 
-            pictureBox.Image = ProfilePhotoPool.GetPhoto(LanConfig.Instance.MAC);
-            labelLogin.Text = LanConfig.Instance.NickName;
+            pictureBox.Image = ProfilePhotoPool.GetPhoto(LanClientConfig.Instance.MAC);
+            labelLogin.Text = LanClientConfig.Instance.NickName;
             labelNIC.Text = nciInfo.Name;
         }
 
@@ -78,7 +78,7 @@ namespace Com.LanIM
         private void ContextMenuStripMAC_NCIInfoSelected(object sender, NCIInfoEventArgs args)
         {
             labelNIC.Text = args.NCIInfo.Name;
-            LanConfig.Instance.MAC = args.NCIInfo.MAC;
+            LanClientConfig.Instance.MAC = args.NCIInfo.MAC;
         }
     }
 }

@@ -30,7 +30,6 @@
         {
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FormLanIM));
-            this.labelStatus = new System.Windows.Forms.LinkLabel();
             this.contextMenuStripStatus = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.toolStripMenuItemStatusOnline = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItemStatusBusy = new System.Windows.Forms.ToolStripMenuItem();
@@ -44,28 +43,13 @@
             this.notifyIcon = new System.Windows.Forms.NotifyIcon(this.components);
             this.timer = new System.Windows.Forms.Timer(this.components);
             this.button1 = new System.Windows.Forms.Button();
+            this.labelServerMode = new System.Windows.Forms.Label();
+            this.labelStatus = new System.Windows.Forms.Label();
+            this.flowLayoutPanel1 = new System.Windows.Forms.FlowLayoutPanel();
             this.contextMenuStripStatus.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBoxFace)).BeginInit();
+            this.flowLayoutPanel1.SuspendLayout();
             this.SuspendLayout();
-            // 
-            // labelStatus
-            // 
-            this.labelStatus.ActiveLinkColor = System.Drawing.Color.CadetBlue;
-            this.labelStatus.AutoSize = true;
-            this.labelStatus.BackColor = System.Drawing.Color.Transparent;
-            this.labelStatus.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.labelStatus.LinkBehavior = System.Windows.Forms.LinkBehavior.HoverUnderline;
-            this.labelStatus.LinkColor = System.Drawing.Color.Black;
-            this.labelStatus.Location = new System.Drawing.Point(72, 55);
-            this.labelStatus.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            this.labelStatus.Name = "labelStatus";
-            this.labelStatus.Size = new System.Drawing.Size(34, 17);
-            this.labelStatus.TabIndex = 2;
-            this.labelStatus.TabStop = true;
-            this.labelStatus.Text = "在线";
-            this.labelStatus.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            this.labelStatus.VisitedLinkColor = System.Drawing.Color.Black;
-            this.labelStatus.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.labelStatus_LinkClicked);
             // 
             // contextMenuStripStatus
             // 
@@ -117,12 +101,12 @@
             this.userListBox.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(231)))), ((int)(((byte)(231)))), ((int)(((byte)(231)))));
             this.userListBox.Borders = Com.LanIM.UI.Borders.None;
             this.userListBox.HighlightWithNoFocus = false;
-            this.userListBox.Location = new System.Drawing.Point(1, 134);
+            this.userListBox.Location = new System.Drawing.Point(1, 117);
             this.userListBox.Margin = new System.Windows.Forms.Padding(4);
             this.userListBox.MultipleSelect = false;
             this.userListBox.Name = "userListBox";
             this.userListBox.OwnerUser = null;
-            this.userListBox.Size = new System.Drawing.Size(287, 517);
+            this.userListBox.Size = new System.Drawing.Size(287, 534);
             this.userListBox.TabIndex = 4;
             this.userListBox.ToggleSelection = false;
             this.userListBox.ItemClicked += new Com.LanIM.UI.ItemClickedEventHandler(this.userListBox_ItemClicked);
@@ -134,7 +118,7 @@
             this.searchBox.Location = new System.Drawing.Point(1, 75);
             this.searchBox.Margin = new System.Windows.Forms.Padding(3, 1, 3, 1);
             this.searchBox.Name = "searchBox";
-            this.searchBox.Size = new System.Drawing.Size(287, 51);
+            this.searchBox.Size = new System.Drawing.Size(287, 45);
             this.searchBox.TabIndex = 5;
             this.searchBox.SearchTextChanged += new Com.LanIM.UI.SearchEventHandler(this.searchBox_SearchTextChanged);
             // 
@@ -152,7 +136,7 @@
             // labelName
             // 
             this.labelName.AutoSize = true;
-            this.labelName.Location = new System.Drawing.Point(71, 32);
+            this.labelName.Location = new System.Drawing.Point(72, 32);
             this.labelName.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.labelName.Name = "labelName";
             this.labelName.Size = new System.Drawing.Size(41, 17);
@@ -161,7 +145,6 @@
             // 
             // pictureBoxFace
             // 
-            this.pictureBoxFace.DrawUserStatus = true;
             this.pictureBoxFace.Image = global::Com.LanIM.Properties.Resources.logo;
             this.pictureBoxFace.Location = new System.Drawing.Point(8, 6);
             this.pictureBoxFace.Name = "pictureBoxFace";
@@ -169,7 +152,6 @@
             this.pictureBoxFace.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.pictureBoxFace.TabIndex = 9;
             this.pictureBoxFace.TabStop = false;
-            this.pictureBoxFace.UserStatus = Com.LanIM.Common.UserStatus.Offline;
             this.pictureBoxFace.Click += new System.EventHandler(this.pictureBoxFace_Click);
             // 
             // notifyIcon
@@ -194,18 +176,48 @@
             this.button1.UseVisualStyleBackColor = true;
             this.button1.Click += new System.EventHandler(this.button1_Click);
             // 
+            // labelServerMode
+            // 
+            this.labelServerMode.Image = global::Com.LanIM.Properties.Resources.server;
+            this.labelServerMode.Location = new System.Drawing.Point(19, 1);
+            this.labelServerMode.Margin = new System.Windows.Forms.Padding(1);
+            this.labelServerMode.Name = "labelServerMode";
+            this.labelServerMode.Size = new System.Drawing.Size(16, 16);
+            this.labelServerMode.TabIndex = 2;
+            // 
+            // labelStatus
+            // 
+            this.labelStatus.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.labelStatus.Image = global::Com.LanIM.Properties.Resources.leaf_green;
+            this.labelStatus.Location = new System.Drawing.Point(1, 1);
+            this.labelStatus.Margin = new System.Windows.Forms.Padding(1);
+            this.labelStatus.Name = "labelStatus";
+            this.labelStatus.Size = new System.Drawing.Size(16, 16);
+            this.labelStatus.TabIndex = 2;
+            this.labelStatus.Click += new System.EventHandler(this.labelStatus_Clicked);
+            // 
+            // flowLayoutPanel1
+            // 
+            this.flowLayoutPanel1.Controls.Add(this.labelStatus);
+            this.flowLayoutPanel1.Controls.Add(this.labelServerMode);
+            this.flowLayoutPanel1.Location = new System.Drawing.Point(75, 50);
+            this.flowLayoutPanel1.Margin = new System.Windows.Forms.Padding(0);
+            this.flowLayoutPanel1.Name = "flowLayoutPanel1";
+            this.flowLayoutPanel1.Size = new System.Drawing.Size(211, 20);
+            this.flowLayoutPanel1.TabIndex = 11;
+            // 
             // FormLanIM
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.ClientSize = new System.Drawing.Size(1067, 652);
+            this.Controls.Add(this.flowLayoutPanel1);
             this.Controls.Add(this.button1);
-            this.Controls.Add(this.labelStatus);
-            this.Controls.Add(this.pictureBoxFace);
             this.Controls.Add(this.userListBox);
             this.Controls.Add(this.searchBox);
             this.Controls.Add(this.labelUserName);
             this.Controls.Add(this.labelName);
+            this.Controls.Add(this.pictureBoxFace);
             this.Font = new System.Drawing.Font("Microsoft YaHei UI", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Margin = new System.Windows.Forms.Padding(4);
@@ -217,13 +229,13 @@
             this.Load += new System.EventHandler(this.FormLanIM_Load);
             this.contextMenuStripStatus.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.pictureBoxFace)).EndInit();
+            this.flowLayoutPanel1.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
         }
 
         #endregion
-        private System.Windows.Forms.LinkLabel labelStatus;
         private Components.UserListBox userListBox;
         private UI.SearchBox searchBox;
         private System.Windows.Forms.Label labelUserName;
@@ -237,5 +249,8 @@
         private System.Windows.Forms.NotifyIcon notifyIcon;
         private System.Windows.Forms.Timer timer;
         private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.Label labelServerMode;
+        private System.Windows.Forms.Label labelStatus;
+        private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel1;
     }
 }

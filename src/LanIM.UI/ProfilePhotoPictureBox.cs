@@ -15,8 +15,8 @@ namespace Com.LanIM.UI
         private const int USER_STATUS_D = 12;
 
         private bool _mouseIn = false;
-        public UserStatus UserStatus { get; set; }
-        public bool DrawUserStatus { get; set; }
+        //public UserStatus UserStatus { get; set; }
+        //public bool DrawUserStatus { get; set; }
 
         public ProfilePhotoPictureBox()
         {
@@ -40,28 +40,28 @@ namespace Com.LanIM.UI
             }
 
             //画在线状态
-            if (DrawUserStatus)
-            {
-                Rectangle rect = new Rectangle(this.Width - USER_STATUS_D - 2, this.Height - USER_STATUS_D - 2, USER_STATUS_D, USER_STATUS_D);
-                g.FillEllipse(Brushes.White, rect);
+            //if (DrawUserStatus)
+            //{
+            //    Rectangle rect = new Rectangle(this.Width - USER_STATUS_D - 2, this.Height - USER_STATUS_D - 2, USER_STATUS_D, USER_STATUS_D);
+            //    g.FillEllipse(Brushes.White, rect);
 
-                rect.X += 1;
-                rect.Y += 1;
-                rect.Width -= 2;
-                rect.Height -= 2;
-                switch (UserStatus)
-                {
-                    case UserStatus.Busy:
-                        g.FillEllipse(Brushes.Crimson, rect);
-                        break;
-                    case UserStatus.Online:
-                        g.FillEllipse(Brushes.Green, rect);
-                        break;
-                    case UserStatus.Offline:
-                        g.FillEllipse(Brushes.Gray, rect);
-                        break;
-                }
-            }
+            //    rect.X += 1;
+            //    rect.Y += 1;
+            //    rect.Width -= 2;
+            //    rect.Height -= 2;
+            //    switch (UserStatus)
+            //    {
+            //        case UserStatus.Busy:
+            //            g.FillEllipse(Brushes.Crimson, rect);
+            //            break;
+            //        case UserStatus.Online:
+            //            g.FillEllipse(Brushes.Green, rect);
+            //            break;
+            //        case UserStatus.Offline:
+            //            g.FillEllipse(Brushes.Gray, rect);
+            //            break;
+            //    }
+            //}
         }
 
         protected override void OnMouseEnter(EventArgs e)

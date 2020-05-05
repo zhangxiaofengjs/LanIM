@@ -20,7 +20,7 @@ namespace Com.LanIM.Network.PacketEncoder
             this._packet = packet;
         }
 
-        public EncodeResult Encode(object args)
+        public EncodeResult Encode()
         {
             string str = string.Format("{0}:{1}:{2}:{3}:{4}:{5}",
                    _packet.Version,

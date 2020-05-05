@@ -201,7 +201,16 @@ namespace Com.LanIM.Components
                     case DrawingObjectType.Image:
                         {
                             Image image = (m as ImageMessage).Image;
-                            g.DrawImage(image, drawingObjRect);
+                            if (image.Width < drawingObjRect.Width && image.Height < drawingObjRect.Height)
+                            {
+                                Rectangle imageRect = new Rectangle(drawingObjRect.X + (drawingObjRect.Width - image.Width) / 2,
+                                    drawingObjRect.Y + (drawingObjRect.Height - image.Height) / 2, image.Width, image.Height);
+                                g.DrawImage(image, imageRect);
+                            }
+                            else
+                            {
+                                g.DrawImage(image, drawingObjRect);
+                            }
 
                             if (drawingObjRect.Contains(pos))
                             {
@@ -315,7 +324,7 @@ namespace Com.LanIM.Components
                                     string path;
                                     if (m.Type == MessageType.Image)
                                     {
-                                        path = (m as ImageMessage).OriginPath;
+                                        path = (m as ImageMessage).Path;
                                     }
                                     else
                                     {

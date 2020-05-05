@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Windows.Forms;
 
-namespace Com.LanIM
+namespace Com.LanIM.Network
 {
+    //用户状态
     [Flags]
 	public enum UpdateState
 	{

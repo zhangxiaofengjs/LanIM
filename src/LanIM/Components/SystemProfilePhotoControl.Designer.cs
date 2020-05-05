@@ -50,7 +50,7 @@
             // 
             // profilePhotoPictureBox1
             // 
-            this.profilePhotoPictureBox1.DrawUserStatus = false;
+            //this.profilePhotoPictureBox1.DrawUserStatus = false;
             this.profilePhotoPictureBox1.Image = global::Com.LanIM.Properties.Resources.pp2;
             this.profilePhotoPictureBox1.Location = new System.Drawing.Point(5, 5);
             this.profilePhotoPictureBox1.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
@@ -59,12 +59,12 @@
             this.profilePhotoPictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.profilePhotoPictureBox1.TabIndex = 0;
             this.profilePhotoPictureBox1.TabStop = false;
-            this.profilePhotoPictureBox1.UserStatus = Com.LanIM.Common.UserStatus.Online;
+            //this.profilePhotoPictureBox1.UserStatus = Com.LanIM.Common.UserStatus.Online;
             this.profilePhotoPictureBox1.Click += new System.EventHandler(this.profilePhotoPictureBox_Click);
             // 
             // profilePhotoPictureBox2
             // 
-            this.profilePhotoPictureBox2.DrawUserStatus = false;
+            //this.profilePhotoPictureBox2.DrawUserStatus = false;
             this.profilePhotoPictureBox2.Image = global::Com.LanIM.Properties.Resources.pp6;
             this.profilePhotoPictureBox2.Location = new System.Drawing.Point(77, 5);
             this.profilePhotoPictureBox2.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
@@ -73,12 +73,12 @@
             this.profilePhotoPictureBox2.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.profilePhotoPictureBox2.TabIndex = 0;
             this.profilePhotoPictureBox2.TabStop = false;
-            this.profilePhotoPictureBox2.UserStatus = Com.LanIM.Common.UserStatus.Online;
+            //this.profilePhotoPictureBox2.UserStatus = Com.LanIM.Common.UserStatus.Online;
             this.profilePhotoPictureBox2.Click += new System.EventHandler(this.profilePhotoPictureBox_Click);
             // 
             // profilePhotoPictureBox3
             // 
-            this.profilePhotoPictureBox3.DrawUserStatus = false;
+            //this.profilePhotoPictureBox3.DrawUserStatus = false;
             this.profilePhotoPictureBox3.Image = global::Com.LanIM.Properties.Resources.pp8;
             this.profilePhotoPictureBox3.Location = new System.Drawing.Point(149, 5);
             this.profilePhotoPictureBox3.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
@@ -87,12 +87,12 @@
             this.profilePhotoPictureBox3.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.profilePhotoPictureBox3.TabIndex = 0;
             this.profilePhotoPictureBox3.TabStop = false;
-            this.profilePhotoPictureBox3.UserStatus = Com.LanIM.Common.UserStatus.Online;
+            //this.profilePhotoPictureBox3.UserStatus = Com.LanIM.Common.UserStatus.Online;
             this.profilePhotoPictureBox3.Click += new System.EventHandler(this.profilePhotoPictureBox_Click);
             // 
             // profilePhotoPictureBox4
             // 
-            this.profilePhotoPictureBox4.DrawUserStatus = false;
+            //this.profilePhotoPictureBox4.DrawUserStatus = false;
             this.profilePhotoPictureBox4.Image = global::Com.LanIM.Properties.Resources.pp5;
             this.profilePhotoPictureBox4.Location = new System.Drawing.Point(77, 153);
             this.profilePhotoPictureBox4.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
@@ -101,12 +101,12 @@
             this.profilePhotoPictureBox4.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.profilePhotoPictureBox4.TabIndex = 0;
             this.profilePhotoPictureBox4.TabStop = false;
-            this.profilePhotoPictureBox4.UserStatus = Com.LanIM.Common.UserStatus.Online;
+            //this.profilePhotoPictureBox4.UserStatus = Com.LanIM.Common.UserStatus.Online;
             this.profilePhotoPictureBox4.Click += new System.EventHandler(this.profilePhotoPictureBox_Click);
             // 
             // profilePhotoPictureBox5
             // 
-            this.profilePhotoPictureBox5.DrawUserStatus = false;
+            //this.profilePhotoPictureBox5.DrawUserStatus = false;
             this.profilePhotoPictureBox5.Image = global::Com.LanIM.Properties.Resources.pp7;
             this.profilePhotoPictureBox5.Location = new System.Drawing.Point(4, 79);
             this.profilePhotoPictureBox5.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
@@ -115,12 +115,12 @@
             this.profilePhotoPictureBox5.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.profilePhotoPictureBox5.TabIndex = 0;
             this.profilePhotoPictureBox5.TabStop = false;
-            this.profilePhotoPictureBox5.UserStatus = Com.LanIM.Common.UserStatus.Online;
+            //this.profilePhotoPictureBox5.UserStatus = Com.LanIM.Common.UserStatus.Online;
             this.profilePhotoPictureBox5.Click += new System.EventHandler(this.profilePhotoPictureBox_Click);
             // 
             // profilePhotoPictureBox6
             // 
-            this.profilePhotoPictureBox6.DrawUserStatus = false;
+            //this.profilePhotoPictureBox6.DrawUserStatus = false;
             this.profilePhotoPictureBox6.Image = global::Com.LanIM.Properties.Resources.pp1;
             this.profilePhotoPictureBox6.Location = new System.Drawing.Point(77, 79);
             this.profilePhotoPictureBox6.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
@@ -129,12 +129,12 @@
             this.profilePhotoPictureBox6.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.profilePhotoPictureBox6.TabIndex = 0;
             this.profilePhotoPictureBox6.TabStop = false;
-            this.profilePhotoPictureBox6.UserStatus = Com.LanIM.Common.UserStatus.Online;
+            //this.profilePhotoPictureBox6.UserStatus = Com.LanIM.Common.UserStatus.Online;
             this.profilePhotoPictureBox6.Click += new System.EventHandler(this.profilePhotoPictureBox_Click);
             // 
             // profilePhotoPictureBox7
             // 
-            this.profilePhotoPictureBox7.DrawUserStatus = false;
+            //this.profilePhotoPictureBox7.DrawUserStatus = false;
             this.profilePhotoPictureBox7.Image = global::Com.LanIM.Properties.Resources.pp3;
             this.profilePhotoPictureBox7.Location = new System.Drawing.Point(149, 79);
             this.profilePhotoPictureBox7.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
@@ -143,12 +143,12 @@
             this.profilePhotoPictureBox7.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.profilePhotoPictureBox7.TabIndex = 0;
             this.profilePhotoPictureBox7.TabStop = false;
-            this.profilePhotoPictureBox7.UserStatus = Com.LanIM.Common.UserStatus.Online;
+            //this.profilePhotoPictureBox7.UserStatus = Com.LanIM.Common.UserStatus.Online;
             this.profilePhotoPictureBox7.Click += new System.EventHandler(this.profilePhotoPictureBox_Click);
             // 
             // profilePhotoPictureBox8
             // 
-            this.profilePhotoPictureBox8.DrawUserStatus = false;
+
             this.profilePhotoPictureBox8.Image = global::Com.LanIM.Properties.Resources.pp4;
             this.profilePhotoPictureBox8.Location = new System.Drawing.Point(5, 153);
             this.profilePhotoPictureBox8.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
@@ -157,12 +157,11 @@
             this.profilePhotoPictureBox8.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.profilePhotoPictureBox8.TabIndex = 0;
             this.profilePhotoPictureBox8.TabStop = false;
-            this.profilePhotoPictureBox8.UserStatus = Com.LanIM.Common.UserStatus.Online;
+            //this.profilePhotoPictureBox8.UserStatus = Com.LanIM.Common.UserStatus.Online;
             this.profilePhotoPictureBox8.Click += new System.EventHandler(this.profilePhotoPictureBox_Click);
             // 
             // profilePhotoPictureBox9
             // 
-            this.profilePhotoPictureBox9.DrawUserStatus = false;
             this.profilePhotoPictureBox9.Image = global::Com.LanIM.Properties.Resources.pp9;
             this.profilePhotoPictureBox9.Location = new System.Drawing.Point(149, 153);
             this.profilePhotoPictureBox9.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
@@ -171,7 +170,6 @@
             this.profilePhotoPictureBox9.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.profilePhotoPictureBox9.TabIndex = 0;
             this.profilePhotoPictureBox9.TabStop = false;
-            this.profilePhotoPictureBox9.UserStatus = Com.LanIM.Common.UserStatus.Online;
             this.profilePhotoPictureBox9.Click += new System.EventHandler(this.profilePhotoPictureBox_Click);
             // 
             // SystemProfilePhotoControl

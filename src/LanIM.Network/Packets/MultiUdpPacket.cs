@@ -24,6 +24,7 @@ namespace Com.LanIM.Network.Packets
         public int TotalLength { get; set; }
         public int Position { get; set; }
         public int Length { get; set; }
+        public int MaxFragmentLength { get; set; }
 
         public MultiUdpPacket(int totalLen)
         {

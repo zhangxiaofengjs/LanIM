@@ -197,6 +197,7 @@
     <None Include="Resources\normal_press.png" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Resources\search.png" />
     <None Include="Resources\default_photo.png" />
     <Content Include="Resources\file.png" />
   </ItemGroup>

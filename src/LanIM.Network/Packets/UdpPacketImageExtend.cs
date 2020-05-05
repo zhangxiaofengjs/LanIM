@@ -14,6 +14,7 @@ namespace Com.LanIM.Network.Packets
     {
         public byte[] EncryptKey { get; set; }
         public Image Image { get; set; }
+        public string FileName { get; set; }
 
         public UdpPacketImageExtend()
         {
@@ -21,9 +22,10 @@ namespace Com.LanIM.Network.Packets
 
         public override string ToString()
         {
-            string str = string.Format("{{encrypt={0}, image={1}}}",
+            string str = string.Format("{{encrypt={0}, image={1}, fileName={2}}}",
                     (EncryptKey != null && EncryptKey.Length != 0 ? "Yes" : "No"),
-                    Image);
+                    Image,
+                    FileName);
             return str;
         }
     }

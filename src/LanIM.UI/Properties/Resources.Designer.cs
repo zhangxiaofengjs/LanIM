@@ -47,7 +47,7 @@ namespace Com.LanIM.UI.Properties {
         }
         
         /// <summary>
-        ///   すべてについて、現在のスレッドの CurrentUICulture プロパティをオーバーライドします
+        ///   厳密に型指定されたこのリソース クラスを使用して、すべての検索リソースに対し、
         ///   現在のスレッドの CurrentUICulture プロパティをオーバーライドします。
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
@@ -196,6 +196,16 @@ namespace Com.LanIM.UI.Properties {
         internal static System.Drawing.Bitmap normal_press {
             get {
                 object obj = ResourceManager.GetObject("normal_press", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   型 System.Drawing.Bitmap のローカライズされたリソースを検索します。
+        /// </summary>
+        internal static System.Drawing.Bitmap search {
+            get {
+                object obj = ResourceManager.GetObject("search", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

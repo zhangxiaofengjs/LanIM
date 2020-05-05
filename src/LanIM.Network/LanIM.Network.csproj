@@ -88,6 +88,8 @@
     <Compile Include="Packets\MultiUdpPacket.cs" />
     <Compile Include="Packets\Packet.cs" />
     <Compile Include="Packets\TcpPacket.cs" />
+    <Compile Include="Packets\UdpPacketRetransExtend.cs" />
+    <Compile Include="Packets\UdpPacketUserListExtend.cs" />
     <Compile Include="TransportFile.cs" />
     <Compile Include="PacketEncoder\DefaultUdpPacketEncoder.cs" />
     <Compile Include="PacketEncoder\IPMsgUdpPacketEncoder.cs" />
@@ -103,10 +105,13 @@
     <Compile Include="Packets\UdpPacketImageExtend.cs" />
     <Compile Include="Packets\UdpPacketSendFileRequestExtend.cs" />
     <Compile Include="Packets\UdpPacketTextExtend.cs" />
-    <Compile Include="Packets\UdpPacketStateExtend.cs" />
+    <Compile Include="Packets\UdpPacketUserStateExtend.cs" />
     <Compile Include="Packets\UdpPacket.cs" />
     <Compile Include="FileTransportTcpClient.cs" />
     <Compile Include="UdpClientEx.cs" />
+    <Compile Include="UpdateState.cs" />
+    <Compile Include="User.cs" />
+    <Compile Include="UserStatus.cs" />
     <Compile Include="WaitTimer.cs" />
     <Compile Include="EventArgs.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

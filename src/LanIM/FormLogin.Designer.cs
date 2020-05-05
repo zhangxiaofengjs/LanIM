@@ -40,7 +40,6 @@
             // 
             // pictureBox
             // 
-            this.pictureBox.DrawUserStatus = false;
             this.pictureBox.Image = global::Com.LanIM.Properties.Resources.logo;
             this.pictureBox.Location = new System.Drawing.Point(73, 102);
             this.pictureBox.Name = "pictureBox";
@@ -48,7 +47,6 @@
             this.pictureBox.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.pictureBox.TabIndex = 0;
             this.pictureBox.TabStop = false;
-            this.pictureBox.UserStatus = Com.LanIM.Common.UserStatus.Online;
             this.pictureBox.Click += new System.EventHandler(this.pictureBox_Click);
             // 
             // labelLogin

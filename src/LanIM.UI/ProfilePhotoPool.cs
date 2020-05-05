@@ -26,7 +26,7 @@ namespace Com.LanIM.UI
                 return img;
             }
 
-            string fileName = Path.Combine(LanConfig.Instance.ProfilePhotoPath, key);
+            string fileName = Path.Combine(LanEnv.ProfilePhotoPath, key);
             if (File.Exists(fileName))
             {
                 img = Image.FromFile(fileName);
@@ -49,7 +49,7 @@ namespace Com.LanIM.UI
 
         public static void SetPhoto(string key, Image img)
         {
-            string fileName = Path.Combine(LanConfig.Instance.ProfilePhotoPath, key);
+            string fileName = Path.Combine(LanEnv.ProfilePhotoPath, key);
             _cache.Remove(key);
             LanFile.Delete(fileName);
 

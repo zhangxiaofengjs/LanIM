@@ -20,7 +20,7 @@ namespace Com.LanIM.Store.Models
         public Image ProfilePhoto {
             get
             {
-                string path = Path.Combine(LanConfig.Instance.ProfilePhotoPath, this.MAC);
+                string path = Path.Combine(LanEnv.ProfilePhotoPath, this.MAC);
                 if(File.Exists(path))
                 {
                     return Image.FromFile(path);

@@ -32,12 +32,11 @@ namespace Com.LanIM.Store
         {
         }
 
-        public static bool Initialize()
+        public static bool Initialize(string dbPath)
         {
             try
             {
                 bool initDb = false;
-                string dbPath = LanConfig.Instance.DbPath;
                 if (!File.Exists(dbPath))
                 {
                     SQLiteConnection.CreateFile(dbPath);
@@ -46,7 +45,7 @@ namespace Com.LanIM.Store
 
                 SQLiteConnectionStringBuilder builder = new SQLiteConnectionStringBuilder();
                 builder.DataSource = dbPath;
-                //builder.Password = "mimal";
+                //builder.Password = "minal";
 
                 _instance = new LanIMStore();
                 _instance.Conn = new SQLiteConnection(builder.ConnectionString);

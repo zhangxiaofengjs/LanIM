@@ -215,19 +215,23 @@ namespace Com.LanIM.Components
                 {
                     string fileName = ofd.FileName;
                     Image smallImg = LanImage.GetThumbnailImage(fileName, MessageListBox.PICTURE_THUMBNAIL_HEIGHT);
-                    if(smallImg == null)
+                    if (smallImg == null)
                     {
-						//可能不是合法的图片
+                        //可能不是合法的图片
                         return;
                     }
 
                     long id = User.SendImage(Contacter, fileName);
 
                     //保存发送记录，只保存缩略图，原图的Path也保存
+                    string thPath = LanEnv.GetNotExistFileName(LanEnv.PicturePath, Path.GetFileName(fileName));
+                    smallImg.Save(thPath);
+
                     Store.Models.ImageMessage m = new Store.Models.ImageMessage(smallImg);
                     m.FromUserId = this.User.ID;
                     m.ToUserId = this.Contacter.ID;
                     m.OriginPath = fileName;
+                    m.FileName = Path.GetFileName(fileName);
                     m.Flag = true; //默认成功，后面按照失败结果设定为false
 
                     MessageListItem item = new MessageListItem();
@@ -341,7 +345,7 @@ namespace Com.LanIM.Components
 
         private void toolStripMenuItemMessage_Click(object sender, EventArgs e)
         {
-            MessageListItem item = messageListBox.GetItemAtPosition(messageListBox.PointToClient(MousePosition)) as MessageListItem;
+            MessageListItem item = contextMenuStripMessage.Tag as MessageListItem;
             if (item == null)
             {
                 return;
@@ -380,21 +384,55 @@ namespace Com.LanIM.Components
             }
             else if(sender == toolStripMenuItemOpenFolder)
             {
+                string filePath;
                 if (m.Type == MessageType.Image)
                 {
+                    filePath = (m as ImageMessage).Path;
                 }
                 else if (m.Type == MessageType.File)
                 {
-                    string filePath = (m as FileMessage).OriginFilePath;
-                    if (File.Exists(filePath))
-                    {
-                       
-                    }
+                    filePath = (m as FileMessage).OriginFilePath;
+                }
+                else
+                {
+                    return;
+                }
+                if (File.Exists(filePath))
+                {
+                    System.Diagnostics.Process.Start("explorer.exe", "/select,\"" + filePath + "\"");
                 }
             }
             else if(sender == toolStripMenuItemSaveAs)
             {
+                string filePath;
+                if (m.Type == MessageType.Image)
+                {
+                    filePath = (m as ImageMessage).Path;
+                }
+                else if (m.Type == MessageType.File)
+                {
+                    filePath = (m as FileMessage).OriginFilePath;
+                }
+                else
+                {
+                    return;
+                }
 
+                if (!File.Exists(filePath))
+                {
+                    return;
+                }
+
+                using (SaveFileDialog sfd = new SaveFileDialog())
+                {
+                    sfd.Filter = "所有文件(*.*)|*.*";
+                    sfd.RestoreDirectory = true;
+                    sfd.FileName = Path.GetFileName(filePath);
+                    if (sfd.ShowDialog() == DialogResult.OK)
+                    {
+                        File.Copy(filePath, sfd.FileName, true);
+                    }
+                }
             }
         }
 
@@ -406,6 +444,7 @@ namespace Com.LanIM.Components
                 e.Cancel = true;
                 return;
             }
+            contextMenuStripMessage.Tag = item;
 
             contextMenuStripMessage.Items.Clear();
             contextMenuStripMessage.Items.Add(toolStripMenuItemCopy);
